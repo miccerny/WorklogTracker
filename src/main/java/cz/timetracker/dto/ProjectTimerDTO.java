@@ -17,7 +17,7 @@ public class ProjectTimerDTO {
     private Long id;
 
     @NotBlank(message = "Jméno projektu nemsí být prázdné")
-    private String nameProject;
+    private String projectName;
 
     private Float hourlyRate;
 
