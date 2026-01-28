@@ -31,12 +31,30 @@ public class ProjectTimerServiceImpl implements ProjectTimerService{
         return projectTimerMapper.toDTO(savedEntity);
     }
 
+    @Transactional
+    @Override
+    public ProjectTimerDTO getProject(Long id) {
+        ProjectTimerEntity projectTimerEntity = projectTimerRepository.findById(id)
+                .orElseThrow(() ->new RuntimeException("Project " + id + "nenalezen"));
+        return projectTimerMapper.toDTO(projectTimerEntity);
+    }
+
     @Transactional(readOnly = true)
     @Override
     public List<ProjectTimerDTO> getAllProjects() {
         return StreamSupport.stream(projectTimerRepository.findAll().spliterator(),
                 false).map(i -> projectTimerMapper.toDTO(i))
                 .toList();
+    }
+
+    @Override
+    public ProjectTimerDTO updateProject(ProjectTimerDTO projectTimerDTO, Long id) {
+        ProjectTimerEntity existing = projectTimerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Project " + id + "nenalezen"));
+
+        existing.setProjectName(projectTimerDTO.getProjectName());
+        projectTimerRepository.save(existing);
+        return projectTimerMapper.toDTO(existing);
     }
 
     @Transactional

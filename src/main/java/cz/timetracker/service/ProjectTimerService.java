@@ -10,6 +10,7 @@ public interface ProjectTimerService {
 
     ProjectTimerDTO addProject(ProjectTimerDTO projectTimer);
     List<ProjectTimerDTO> getAllProjects();
-
+    ProjectTimerDTO getProject(Long id);
+    ProjectTimerDTO updateProject(ProjectTimerDTO projectTimerDTO, Long id);
     void deleteProject(Long id);
 }
