@@ -10,14 +10,14 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class ProjectTimerDTO {
+public class WorkLogDTO {
 
     @Id
     @JsonProperty("_id")
     private Long id;
 
     @NotBlank(message = "Jméno projektu nemsí být prázdné")
-    private String projectName;
+    private String workLogName;
 
     private Float hourlyRate;
 

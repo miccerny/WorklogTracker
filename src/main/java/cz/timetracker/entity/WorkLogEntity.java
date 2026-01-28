@@ -2,7 +2,6 @@ package cz.timetracker.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Setter
-public class ProjectTimerEntity {
+public class WorkLogEntity {
 
     @Id
     @SequenceGenerator(sequenceName = "project_name_seq", initialValue = 1, allocationSize = 1)
@@ -23,13 +22,13 @@ public class ProjectTimerEntity {
     private Long id;
 
     @Column(nullable = false)
-    private String projectName;
+    private String workLogName;
 
     @Column
     private Float hourlyRate;
 
     @Column(nullable = false)
-    private boolean active;
+    private boolean activated;
 
     @CreationTimestamp
     @Column(nullable = false)
