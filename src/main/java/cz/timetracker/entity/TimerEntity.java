@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -18,10 +19,10 @@ public class TimerEntity {
     private Long id;
 
     @Column(nullable = false)
-    private Instant startedAt;
+    private LocalDateTime startedAt;
 
     @Column
-    private Instant stoppedAt;
+    private LocalDateTime stoppedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
