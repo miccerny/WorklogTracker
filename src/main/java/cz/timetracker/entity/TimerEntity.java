@@ -1,10 +1,11 @@
 package cz.timetracker.entity;
 
+import cz.timetracker.entity.enums.TimerType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Getter
@@ -17,9 +18,20 @@ public class TimerEntity {
     private Long id;
 
     @Column(nullable = false)
-    private LocalDateTime startedAt;
+    private Instant startedAt;
+
+    @Column
+    private Instant stoppedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TimerType status;
 
     @Column
     private String note;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "work_log_id")
+    private WorkLogEntity workLog;
 
 }
