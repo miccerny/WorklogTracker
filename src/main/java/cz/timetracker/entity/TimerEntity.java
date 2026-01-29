@@ -24,6 +24,9 @@ public class TimerEntity {
     @Column
     private LocalDateTime stoppedAt;
 
+    @Column
+    private Long durationInSeconds;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TimerType status;

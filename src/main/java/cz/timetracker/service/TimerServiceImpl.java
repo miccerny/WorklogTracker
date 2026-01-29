@@ -9,12 +9,13 @@ import cz.timetracker.entity.repository.TimerRepository;
 import cz.timetracker.entity.repository.WorkLogRepository;
 import cz.timetracker.service.exceptions.ConflictException;
 import cz.timetracker.service.exceptions.NotFoundException;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class TimerServiceImpl implements TimerService{
@@ -51,6 +52,7 @@ public class TimerServiceImpl implements TimerService{
         return timerMapper.toDTO(saved);
     }
 
+    @Transactional
     @Override
     public TimerDTO stopTimer(Long workLogId) {
         WorkLogEntity workLogEntity = workLogRepository.findById(workLogId)
@@ -60,11 +62,50 @@ public class TimerServiceImpl implements TimerService{
         TimerEntity runningTimer = timerRepository
                 .findFirstByWorkLogIdAndStatusOrderByStartedAtDesc(workLogId, TimerType.RUNNING)
                 .orElseThrow(()-> new ConflictException("Timer is not running for this worklog " + workLogId));
-        runningTimer.setStoppedAt(LocalDateTime.now());
+        LocalDateTime stoppedAt = LocalDateTime.now();
+        List<TimerEntity> savedTimers = stopAndSplitTimerIfNeeded(
+                runningTimer, stoppedAt, workLogEntity
+        );
+        TimerEntity lastSaved = savedTimers.get(savedTimers.size() - 1);
+        return  timerMapper.toDTO(lastSaved);
+    }
+
+    @Transactional
+    private List<TimerEntity> stopAndSplitTimerIfNeeded(TimerEntity runningTimer,
+                                                        LocalDateTime stoppedAt,
+                                                        WorkLogEntity workLogEntity){
+        LocalDate startDate = runningTimer.getStartedAt().toLocalDate();
+        LocalDate stopDate = stoppedAt.toLocalDate();
+
+        if(startDate.equals(stopDate)){
+            runningTimer.setStoppedAt(stoppedAt);
+            runningTimer.setStatus(TimerType.STOPPED);
+            runningTimer.setDurationInSeconds(Duration.between(runningTimer.getStartedAt(),
+                    stoppedAt).getSeconds());
+            runningTimer.setWorkLog(workLogEntity);
+            return  List.of(timerRepository.save(runningTimer));
+        }
+
+        LocalDateTime afterMidnight = startDate
+                .plusDays(1).atStartOfDay();
+        runningTimer.setStoppedAt(afterMidnight);
         runningTimer.setStatus(TimerType.STOPPED);
+        runningTimer.setDurationInSeconds(Duration.between(runningTimer.getStartedAt(),
+                afterMidnight).getSeconds());
         runningTimer.setWorkLog(workLogEntity);
-        TimerEntity saved = timerRepository.save(runningTimer);
-        return timerMapper.toDTO(saved);
+        TimerEntity firstSaved = timerRepository.save(runningTimer);
+
+        TimerEntity overFlowTimer = new TimerEntity();
+        overFlowTimer.setStartedAt(afterMidnight);
+        overFlowTimer.setStoppedAt(stoppedAt);
+        overFlowTimer.setStatus(TimerType.STOPPED);
+        overFlowTimer.setDurationInSeconds(
+                Duration.between(afterMidnight, stoppedAt).getSeconds()
+        );
+        overFlowTimer.setWorkLog(workLogEntity);
+
+        TimerEntity secondSaved = timerRepository.save(overFlowTimer);
+        return List.of(firstSaved, secondSaved);
     }
 
 

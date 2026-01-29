@@ -22,5 +22,7 @@ public class TimerDTO {
 
     private Long workLogId;
 
+    private Long durationInSeconds;
+
     private TimerType status;
 }
