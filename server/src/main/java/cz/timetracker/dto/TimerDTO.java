@@ -1,7 +1,6 @@
 package cz.timetracker.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import cz.timetracker.entity.enums.TimerType;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,10 +18,4 @@ public class TimerDTO {
     private LocalDateTime createdAt;
 
     private String note;
-
-    private Long workLogId;
-
-    private Long durationInSeconds;
-
-    private TimerType status;
 }

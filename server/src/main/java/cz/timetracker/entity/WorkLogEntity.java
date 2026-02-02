@@ -7,9 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -34,9 +32,5 @@ public class WorkLogEntity {
 
     @CreationTimestamp
     @Column(nullable = false)
-    private Instant createdAt;
-
-    @OneToMany(mappedBy = "workLog", orphanRemoval = true, cascade = CascadeType.ALL)
-    private List<TimerEntity> timers;
-
+    private LocalDateTime createdAt;
 }
