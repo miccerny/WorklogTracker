@@ -19,18 +19,18 @@ public class TimersController{
         this.workLogService = workLogService;
     }
 
-    @GetMapping("/timers")
-    public WorkLogDTO getProject(@RequestParam Long projectId){
-        return workLogService.getProject(projectId);
+    @GetMapping("/{workLogId}/timers")
+    public WorkLogDTO getProject(@PathVariable Long workLogId){
+        return workLogService.getProject(workLogId);
     }
 
     @PostMapping("/{workLogId}/startTimer")
-    public TimerDTO startTimer(Long workLogId){
+    public TimerDTO startTimer(@PathVariable Long workLogId){
         return timerService.startTimer(workLogId);
     }
 
     @PostMapping("/{workLogId}/stopTimer")
-    public TimerDTO stopTimer(Long workLogId){
+    public TimerDTO stopTimer( @PathVariable Long workLogId){
         return timerService.stopTimer(workLogId);
     }
 }
