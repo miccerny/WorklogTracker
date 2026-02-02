@@ -40,7 +40,7 @@ public class TimerServiceImpl implements TimerService{
                         () -> new NotFoundException("Work log with " + workLogId + "not found")
                 );
 
-        if(timerRepository.existByWorkLogIdAndStatus(workLogId, TimerType.RUNNING)){
+        if(timerRepository.existsByWorkLogIdAndStatus(workLogId, TimerType.RUNNING)){
             throw new ConflictException("Timer already running for this worklog");
         }
 

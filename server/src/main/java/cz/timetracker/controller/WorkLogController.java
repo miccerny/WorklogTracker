@@ -27,10 +27,7 @@ public class WorkLogController {
         return workLogService.getAllProjects();
     }
 
-    @GetMapping("/worklogs/timers")
-    public WorkLogDTO getProject(@RequestParam Long projectId){
-        return workLogService.getProject(projectId);
-    }
+
 
     @PutMapping("/worklogs")
     public WorkLogDTO updateProject(@RequestBody WorkLogDTO workLogDTO, @RequestParam Long id){
