@@ -52,6 +52,15 @@ public class TimerServiceImpl implements TimerService{
         return timerMapper.toDTO(saved);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<TimerDTO> getAllTimers(Long workLogId) {
+        return timerRepository.findFirstByWorkLogIdAndStatusOrderByStartedAtDesc(workLogId, timerType).stream()
+                    .map(timerMapper::toDTO)
+                    .toList();
+
+    }
+
     @Transactional
     @Override
     public TimerDTO stopTimer(Long workLogId) {

@@ -2,6 +2,7 @@ package cz.timetracker.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.timetracker.entity.enums.TimerType;
+import jdk.jfr.Timestamp;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;

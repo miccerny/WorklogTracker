@@ -2,9 +2,12 @@ package cz.timetracker.controller;
 
 import cz.timetracker.dto.TimerDTO;
 import cz.timetracker.dto.WorkLogDTO;
+import cz.timetracker.entity.enums.TimerType;
 import cz.timetracker.service.TimerService;
 import cz.timetracker.service.WorkLogService;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/worklogs")
@@ -20,8 +23,8 @@ public class TimersController{
     }
 
     @GetMapping("/{workLogId}/timers")
-    public WorkLogDTO getProject(@PathVariable Long workLogId){
-        return workLogService.getProject(workLogId);
+    public List<TimerDTO> getProject(@PathVariable Long workLogId){
+        return timerService.getAllTimers(workLogId);
     }
 
     @PostMapping("/{workLogId}/startTimer")

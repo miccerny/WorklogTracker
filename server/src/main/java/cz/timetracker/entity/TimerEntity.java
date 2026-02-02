@@ -2,6 +2,7 @@ package cz.timetracker.entity;
 
 import cz.timetracker.entity.enums.TimerType;
 import jakarta.persistence.*;
+import jdk.jfr.Timestamp;
 import lombok.Getter;
 import lombok.Setter;
 

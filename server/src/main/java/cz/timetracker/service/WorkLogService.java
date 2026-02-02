@@ -6,9 +6,8 @@ import java.util.List;
 
 public interface WorkLogService {
 
-    WorkLogDTO addProject(WorkLogDTO projectTimer);
-    List<WorkLogDTO> getAllProjects();
-    WorkLogDTO getProject(Long id);
-    WorkLogDTO updateProject(WorkLogDTO workLogDTO, Long id);
-    void deleteProject(Long id);
+    WorkLogDTO addWorkLog(WorkLogDTO projectTimer);
+    List<WorkLogDTO> getAllWorkLogs();
+    WorkLogDTO updateWorkLog(WorkLogDTO workLogDTO, Long id);
+    void deleteWorkLog(Long id);
 }

@@ -25,30 +25,23 @@ public class WorkLogServiceImpl implements WorkLogService {
 
     @Transactional
     @Override
-    public WorkLogDTO addProject(WorkLogDTO projectTimer) {
+    public WorkLogDTO addWorkLog(WorkLogDTO projectTimer) {
         WorkLogEntity workLogEntity = workLogMapper.toEntity(projectTimer);
         WorkLogEntity savedEntity = workLogRepository.save(workLogEntity);
         return workLogMapper.toDTO(savedEntity);
     }
 
-    @Transactional
-    @Override
-    public WorkLogDTO getProject(Long id) {
-        WorkLogEntity workLogEntity = workLogRepository.findById(id)
-                .orElseThrow(() ->new RuntimeException("Project " + id + "nenalezen"));
-        return workLogMapper.toDTO(workLogEntity);
-    }
-
     @Transactional(readOnly = true)
     @Override
-    public List<WorkLogDTO> getAllProjects() {
+    public List<WorkLogDTO> getAllWorkLogs() {
         return StreamSupport.stream(workLogRepository.findAll().spliterator(),
                 false).map(i -> workLogMapper.toDTO(i))
                 .toList();
     }
 
+    @Transactional
     @Override
-    public WorkLogDTO updateProject(WorkLogDTO workLogDTO, Long id) {
+    public WorkLogDTO updateWorkLog(WorkLogDTO workLogDTO, Long id) {
         WorkLogEntity existing = workLogRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Project " + id + "nenalezen"));
         existing.setActivated(false);
@@ -62,7 +55,7 @@ public class WorkLogServiceImpl implements WorkLogService {
 
     @Transactional
     @Override
-    public void deleteProject(Long id){
+    public void deleteWorkLog(Long id){
         WorkLogEntity existing = workLogRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Project " + id + "nenalezen"));
         workLogRepository.delete(existing);

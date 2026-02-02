@@ -19,23 +19,23 @@ public class WorkLogController {
 
     @PostMapping("/worklogs")
     public WorkLogDTO addProject(@RequestBody WorkLogDTO workLogDTO){
-        return workLogService.addProject(workLogDTO);
+        return workLogService.addWorkLog(workLogDTO);
     }
 
     @GetMapping("/worklogs")
     public List<WorkLogDTO> getAllProjects(){
-        return workLogService.getAllProjects();
+        return workLogService.getAllWorkLogs();
     }
 
 
 
     @PutMapping("/worklogs")
     public WorkLogDTO updateProject(@RequestBody WorkLogDTO workLogDTO, @RequestParam Long id){
-        return workLogService.updateProject(workLogDTO, id);
+        return workLogService.updateWorkLog(workLogDTO, id);
     }
 
     @DeleteMapping("/worklogs")
     public void removeProject(@RequestParam Long projectId){
-        workLogService.deleteProject(projectId);
+        workLogService.deleteWorkLog(projectId);
     }
 }
