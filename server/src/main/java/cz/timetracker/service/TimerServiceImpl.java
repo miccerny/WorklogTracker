@@ -55,7 +55,10 @@ public class TimerServiceImpl implements TimerService{
     @Override
     @Transactional(readOnly = true)
     public List<TimerDTO> getAllTimers(Long workLogId) {
-        return timerRepository.findFirstByWorkLogIdAndStatusOrderByStartedAtDesc(workLogId, timerType).stream()
+        if(!timerRepository.existsByWorkLogId(workLogId)){
+            throw new NotFoundException("Worklog with ID " + workLogId + " not found");
+        }
+        return timerRepository.findByWorkLogIdOrderByStartedAtDesc(workLogId).stream()
                     .map(timerMapper::toDTO)
                     .toList();
 
