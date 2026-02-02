@@ -1,0 +1,41 @@
+@startuml
+title Sequence - Timer (FE) -> Save WorkLog -> Redirect Summary
+actor User
+participant "TimerPage (React)" as FE
+participant "WorkLogController" as C
+participant "WorkLogService" as S
+participant "ReportController" as RC
+participant "ReportService" as RS
+database "DB" as DB
+participant "SummaryPage (React)" as SUM
+
+User -> FE : Open /timer?projectId=...
+FE -> FE : init draft (empty)
+
+User -> FE : Click START
+FE -> FE : startedAt = now\nstate=RUNNING\nstart ticker
+
+User -> FE : Click STOP
+FE -> FE : endAt = now\nstate=STOPPED\ncompute durationSeconds\nshow draft form (breakSeconds, note)
+
+User -> FE : Click SAVE
+FE -> C : POST /api/worklogs {projectId,startAt,endAt,breakSeconds,note}
+C -> S : create(userId, dto)
+S -> S : validate times + breaks
+S -> DB : findByUserAndDate(userId, startAt.date)
+DB --> S : workLogsOfDay
+S -> S : overlap check
+S -> DB : insert WorkLog
+DB --> S : saved
+S --> C : WorkLogResponseDTO(id, durationSeconds)
+C --> FE : 201 Created
+
+FE -> SUM : redirect /projects/{projectId}/summary?from=...&to=...
+SUM -> RC : GET /api/reports/summary?projectId=...&from=...&to=...
+RC -> RS : getSummary(userId, projectId, from, to)
+RS -> DB : query worklogs + aggregate
+DB --> RS : data
+RS --> RC : SummaryDTO
+RC --> SUM : 200 OK SummaryDTO
+SUM --> User : show summary
+@enduml

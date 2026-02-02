@@ -22,7 +22,7 @@ public class TimersController{
         this.workLogService = workLogService;
     }
 
-    @GetMapping("/{workLogId}/timers")
+    @GetMapping("/{workLogId}/summary")
     public List<TimerDTO> getProject(@PathVariable Long workLogId){
         return timerService.getAllTimers(workLogId);
     }
