@@ -2,3 +2,4 @@ server/src/main/resources/application.yaml
 server/src/main/resources/application.yaml
 src/main/resources/application.yaml
 /server/.idea
+/target
