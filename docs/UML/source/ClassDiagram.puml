@@ -1,0 +1,46 @@
+@startuml
+title Time Tracker - Class Diagram (MVP simplified)
+skinparam classAttributeIconSize 0
+
+class User {
+  +UUID id
+  +String email
+  +String passwordHash
+  +Instant createdAt
+}
+
+class Project {
+  +UUID id
+  +String name
+  +BigDecimal hourlyRate <<optional>>
+  +boolean active
+  +Instant createdAt
+}
+
+class WorkLog {
+  +UUID id
+  +LocalDateTime startAt
+  +LocalDateTime endAt
+  +int breakSeconds
+  +String note <<optional>>
+  +Instant createdAt
+  --
+  +long durationSeconds() <<derived>>
+}
+
+User "1" o-- "0..*" Project : owns
+User "1" o-- "0..*" WorkLog : owns
+Project "1" <-- "0..*" WorkLog : assigned to
+
+note right of WorkLog
+Constraints (MVP):
+- startAt < endAt
+- breakSeconds >= 0
+- breakSeconds < secondsBetween(startAt, endAt)
+- No overlap per (userId, startAt.toLocalDate())
+- Cross-midnight allowed (single WorkLog)
+Derived:
+- durationSeconds = secondsBetween(startAt, endAt) - breakSeconds
+end note
+@enduml
+

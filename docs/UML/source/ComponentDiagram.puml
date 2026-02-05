@@ -1,0 +1,24 @@
+@startuml
+title Component Diagram - MVP simplified
+skinparam componentStyle rectangle
+
+component "React FE\n(Timer, WorkLogs, Summary)" as FE
+component "Spring Boot API" as API
+database "PostgreSQL" as DB
+
+component "Auth" as AUTH
+component "Projects" as PROJ
+component "WorkLogs" as WL
+component "Reports" as REP
+
+FE --> API : REST/JSON (HTTPS)
+API --> DB : JPA/Hibernate
+
+API -- AUTH
+API -- PROJ
+API -- WL
+API -- REP
+
+REP ..> WL : reads WorkLogs
+PROJ ..> WL : WorkLog belongs to Project
+@enduml

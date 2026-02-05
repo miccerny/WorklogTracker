@@ -1,0 +1,31 @@
+@startuml
+left to right direction
+actor "User" as U
+
+rectangle "Time Tracker App (MVP)" {
+  usecase "Register / Login" as UC1
+  usecase "Manage Projects\n(Create/Edit/Deactivate)" as UC2
+
+  usecase "Open Timer Screen\n(for project)" as UC3
+  usecase "Start Timer" as UC4
+  usecase "Stop Timer\n(create draft on FE)" as UC5
+  usecase "Save WorkLog" as UC6
+
+  usecase "View Project Summary\n(totals, by day)" as UC7
+  usecase "View WorkLogs\n(filter by date/project)" as UC8
+  usecase "Edit / Delete WorkLog" as UC9
+}
+
+U --> UC1
+U --> UC2
+U --> UC3
+U --> UC4
+U --> UC5
+U --> UC6
+U --> UC7
+U --> UC8
+U --> UC9
+
+UC6 ..> UC7 : <<includes>> (redirect after save)
+@enduml
+
