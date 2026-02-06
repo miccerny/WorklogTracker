@@ -1,4 +1,4 @@
-import { WorkLog } from "./typeWorkLog";
+import type { WorkLog } from "./typeWorkLog";
 
 const WorkLogsTable = ({workLogs, label}: {workLogs: WorkLog[], label: string}) => {
   return (

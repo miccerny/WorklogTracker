@@ -1,6 +1,7 @@
 import { Route, Link, Routes } from "react-router-dom";
 import "./App.css";
 import { WorkLogs } from "./workLogs/WorkLogsIndex";
+import TimerIndex from "./timers/TimerIndex";
 
 function App() {
   return (
@@ -15,7 +16,9 @@ function App() {
         <li>Přihlášení</li>
       </ul>
       <Routes>
-        <Route path="/worklogs" element={<WorkLogs />}/>
+        <Route path="/worklogs" element={<WorkLogs />}>
+        <Route  path=":workLogId/summary" element={<TimerIndex />}/>
+        </Route>
       </Routes>
     </>
   );
