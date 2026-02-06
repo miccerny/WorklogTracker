@@ -1,7 +1,7 @@
 import { Route, Link, Routes } from "react-router-dom";
 import "./App.css";
 import { WorkLogs } from "./workLogs/WorkLogsIndex";
-import { TimerIndex } from "./timers/TimerIndex";
+import TimerIndex from "./timers/TimerIndex";
 
 function App() {
   return (

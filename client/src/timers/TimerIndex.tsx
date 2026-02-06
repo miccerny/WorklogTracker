@@ -4,11 +4,12 @@ import TimerTable from "./TimerTable";
 import type { Timer } from "./TimerType";
 import { useParams } from "react-router-dom";
 
-export const TimerIndex = () => {
+const TimerIndex = () => {
 
     const [timerState, setTimerstate] = useState<Timer[]>([]);
     const [errorState, setErrorState] = useState<string | null>(null);
-    const {workLogId} = useParams<{ workLogId: string }>();
+    const {workLogId: workLogIdParam} = useParams<{ workLogId: string }>();
+    const workLogId = workLogIdParam ? Number(workLogIdParam) : null;
     const loadTimer = async() => {
         const timerData= await apiGet<Timer[]>(`/worklogs/${workLogId}/summary`)
         .then((data) => {
@@ -22,10 +23,13 @@ export const TimerIndex = () => {
     }
 
     useEffect(() => {
-        if(!workLogId) return;
+        if(workLogId === null || Number.isNaN(workLogId)) {
+            setErrorState("Neplatné ID worklogu");
+            return;
+        } 
         loadTimer()
 
-    },[workLogId]);
+    },[workLogIdParam]);
 
 
     return (
@@ -33,6 +37,7 @@ export const TimerIndex = () => {
         <TimerTable
             timerData = {timerState}
             label = "Časovač"
+            errorState={errorState}
         />
         </>
     )
