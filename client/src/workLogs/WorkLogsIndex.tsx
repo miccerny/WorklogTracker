@@ -2,12 +2,11 @@ import { useEffect, useState } from "react"
 import { apiGet } from "../utils/api";
 import { HttpRequestError } from "../errors/HttpRequestError";
 import WorkLogsTable from "./WorkLogTable";
-import { WorkLog } from "./typeWorkLog";
+import type  { WorkLog } from "./typeWorkLog";
 
 
 
 export const WorkLogs = () => {
-  const [logName, setLogName] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [WorkLogState, setWorkLogState] = useState<WorkLog[]>([]);
   const [erorState, setErrorState] = useState<string>("");

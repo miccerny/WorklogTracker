@@ -4,13 +4,13 @@ import TimerTable from "./TimerTable";
 import type { Timer } from "./TimerType";
 import { useParams } from "react-router-dom";
 
-const TimerIndex = () => {
+export const TimerIndex = () => {
 
     const [timerState, setTimerstate] = useState<Timer[]>([]);
     const [errorState, setErrorState] = useState<string | null>(null);
     const {workLogId} = useParams<{ workLogId: string }>();
     const loadTimer = async() => {
-        const timerData= await apiGet<Timer[]>(`/${workLogId}/summary`)
+        const timerData= await apiGet<Timer[]>(`/worklogs/${workLogId}/summary`)
         .then((data) => {
             setTimerstate(data);
 
@@ -24,6 +24,7 @@ const TimerIndex = () => {
     useEffect(() => {
         if(!workLogId) return;
         loadTimer()
+
     },[workLogId]);
 
 
@@ -34,7 +35,7 @@ const TimerIndex = () => {
             label = "Časovač"
         />
         </>
-    );
+    )
 
 }
 export default TimerIndex;
