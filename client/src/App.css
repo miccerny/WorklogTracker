@@ -1,5 +1,223 @@
-.navigation {
-  list-style-type: none;
+:root {
+  --bg: #1f1f1f;           /* pozadí celé stránky */
+  --surface: #242424;      /* "karta" / plocha nad pozadím */
+  --surface-2: #2a2a2a;    /* lehce světlejší varianta pro hover / vnoření */
+  --text: #e8e8e8;         /* výchozí text */
+  --muted: #b9b9b9;        /* sekundární text */
+  --border: rgba(255, 255, 255, 0.10); /* jemné ohraničení */
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35); /* jemný stín */
+  --radius: 14px;          /* zaoblení */
+  --gap: 14px;             /* základní mezera */
+  --accent: #9ad1ff;       /* barva odkazů / akcent */
+}
+
+body, html{
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Odkazy – decentní akcent + hover */
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   2) Layout stránky
+   - dá obsah na střed a nastaví max šířku (na širokém monitoru to nebude roztažené)
+   ========================= */
+.page {
+  max-width: 1100px;             /* „kontejner“ šířky stránky */
+  margin: 0 auto;                /* vycentrování */
+  padding: 18px 18px 40px;       /* vnitřní odsazení */
+}
+
+.header {
+  position: relative;
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+
+
+  background: rgba(255, 255, 255, 0.03); /* lehké "sklo" */
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+
+  padding: 1rem 2rem;
+  margin-bottom: 18px;
+}
+
+/* Worklogs uprostřed headeru bez ohledu na pravou stranu */
+.nav-center {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  gap: 10px;
+}
+
+.nav-auth {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-auth li,
+.nav-center li {
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* Klikací itemy v navu (ať vypadají jako "chip") */
+.nav-item {
+  display: inline-flex;           /* hezčí zarovnání textu */
+  align-items: center;
+  gap: 8px;
+
+  padding: 8px 12px;
+  border-radius: 999px;           /* pill tvar */
+  border: 1px solid transparent;  /* připraveno na hover */
+  color: var(--text);
+  background: transparent;
+}
+
+/* Hover efekt pro nav itemy */
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border);
+  text-decoration: none;          /* u <a> vypneme underline a máme to jako button */
+}
+
+
+/* =========================
+   4) Hlavní obsah – "card" bloky
+   ========================= */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+
+  padding: 18px;
+  margin-top: 14px;
+}
+
+/* Nadpis sekce – trochu výraznější */
+.section-title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  letter-spacing: 0.2px;
+}
+
+/* Jemná linka / oddělovač */
+.divider {
+  height: 1px;
+  background: var(--border);
+  border: 0;
+  margin: 14px 0;
+}
+
+/* =========================
+   5) Timer info (seznam / texty)
+   ========================= */
+.timer-list {
+  margin: 0;
+  padding-left: 18px;  /* tečka + odsazení listu */
+  color: var(--text);
+}
+
+.timer-list li {
+  margin: 8px 0;
+}
+
+/* "popisky" typu Start / Status uděláme tlumené */
+.muted {
+  color: var(--muted);
+}
+
+/* =========================
+   6) Button – hezčí default
+   ========================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.btn:active {
+  transform: translateY(1px); /* jemné "kliknutí" */
+}
+
+/* Primární tlačítko (akcent) */
+.btn-primary {
+  border-color: rgba(154, 209, 255, 0.35);
+  background: rgba(154, 209, 255, 0.12);
+}
+
+.btn-primary:hover {
+  background: rgba(154, 209, 255, 0.18);
+}
+
+/* =========================
+   7) Responzivita
+   - na mobilu dáme auth položky pod sebe a header trochu zmenšíme
+   ========================= */
+@media (max-width: 480px) {
+ 
+  .nav-auth {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+
+  .header {
+    padding: 1rem;
+  }
+
+  /* Na úzkém displeji je středové menu často nepraktické absolutně
+     - tady ho necháme normálně v toku a vycentrujeme */
+  .nav-center {
+    position: static;
+    transform: none;
+    margin: 0 auto;
+    justify-content: center;
+  }
 }

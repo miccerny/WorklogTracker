@@ -1,8 +1,8 @@
 export type Timer = ({
     id: number;
     workLogId: number;
-    startedAt: string;
-    stoppedAt: string;
-    duration: string;
+    createdAt: string;
+    stoppedAt: string | null;
+    durationInSeconds: number;
     status: boolean;
 })
