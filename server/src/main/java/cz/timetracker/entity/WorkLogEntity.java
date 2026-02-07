@@ -20,7 +20,6 @@ public class WorkLogEntity {
     @Id
     @SequenceGenerator(sequenceName = "project_name_seq", initialValue = 1, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @JsonProperty("_id")
     private Long id;
 
     @Column(nullable = false)

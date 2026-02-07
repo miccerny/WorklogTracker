@@ -15,7 +15,6 @@ import java.util.List;
 public class WorkLogDTO {
 
     @Id
-    @JsonProperty("_id")
     private Long id;
 
     @NotBlank(message = "Jméno projektu nemsí být prázdné")

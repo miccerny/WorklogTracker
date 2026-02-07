@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @Setter
 public class TimerDTO {
 
-    @JsonProperty("_id")
     private Long id;
 
     private LocalDateTime createdAt;
