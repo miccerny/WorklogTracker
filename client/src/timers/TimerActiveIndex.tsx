@@ -17,7 +17,7 @@ const TimerActiveIndex = () => {
   const loadTimerActiveStart = async () => {
     try {
       setErrorState(null);
-      const data = await apiGet<Timer[]>(`/worklogs/${workLogId}/active-timer`);
+      const data = await apiGet<Timer[]>(`/worklogs/${workLogId}/summary`);
       setTimerActiveState(data);
     } catch (e: any) {
       setErrorState(e?.message ?? String(e));
@@ -95,7 +95,7 @@ const TimerActiveIndex = () => {
       <TimerActiveTable
         timeText={timeText}
         isRunning={isRunning}
-        erroState={erorState}
+        errorState={erorState}
         onStart={onStart}
         onStop={onStop}
       />

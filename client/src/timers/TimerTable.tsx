@@ -50,7 +50,7 @@ const TimerTable = ({
       </ul>
 
       {workLogId && (
-        <Link to={`/worklogs/${workLogId}/start-timer`}>
+        <Link to={`/worklogs/${workLogId}/active-timer`}>
           <button className="btn btn-primary">Spustit nový timer</button>
         </Link>
       )}

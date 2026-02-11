@@ -7,7 +7,4 @@ export type Timer = ({
     status: TimerStatus;
 })
 
-type TimerStatus = ({
-  "RUNNING": string | boolean
-  "STOPPED": string | boolean
-})
+type TimerStatus = "RUNNING" | "STOPPED";
