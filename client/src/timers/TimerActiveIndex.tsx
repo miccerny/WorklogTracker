@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Timer } from "./TimerType";
-import { apiGet } from "../utils/api";
+import { apiGet, apiPost } from "../utils/api";
 import { Link, useParams } from "react-router-dom";
 import TimerActiveTable from "./TimerActiveTable";
 import formatDuration from "./formatDuration";
@@ -61,6 +61,11 @@ const TimerActiveIndex = () => {
     if (!workLogId) return;
     try {
       setErrorState(null);
+
+      await apiPost<Timer, Record<string, never>>(
+        `/worklogs/${workLogId}/startTimer`,
+        {},
+      );
       await loadTimerActiveStart();
     } catch (e: any) {
       setErrorState(e?.message ?? String(e));
@@ -72,6 +77,11 @@ const TimerActiveIndex = () => {
 
     try {
       setErrorState(null);
+
+      await apiPost<Timer, Record<string, never>>(
+        `/worklogs/${workLogId}/stopTimer`,
+        {},
+      );
       await loadTimerActiveStart();
     } catch (e: any) {
       setErrorState(e?.message ?? String(e));

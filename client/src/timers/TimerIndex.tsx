@@ -15,6 +15,7 @@ const TimerIndex = () => {
     const timerData = await apiGet<Timer[]>(`/worklogs/${workLogId}/summary`)
       .then((data) => {
         setTimerstate(data);
+        console.log(data);
       })
       .catch((error) => {
         setErrorState(error);
@@ -29,7 +30,7 @@ const TimerIndex = () => {
     }
     loadTimer();
   }, [workLogId]);
-
+  console.log(workLogId, timerState);
 
   return (
     <>

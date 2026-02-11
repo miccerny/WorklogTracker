@@ -42,11 +42,11 @@ function App() {
       </header>
       <div className="page">
         <Routes>
-          <Route path="/worklogs/*" element={<WorkLogs />} />
-              <Route path=":workLogId" element={<WorkLogLayout />}>
-                <Route path="summary" element={<TimerIndex />} />
-                <Route path="active-timer" element={<TimerActiveIndex />} />
-              </Route>
+          <Route path="/worklogs" element={<WorkLogs />} />
+          <Route path="/worklogs/:workLogId" element={<WorkLogLayout />}>
+            <Route path="summary" element={<TimerIndex />} />
+            <Route path="active-timer" element={<TimerActiveIndex />} />
+          </Route>
         </Routes>
       </div>
     </>
