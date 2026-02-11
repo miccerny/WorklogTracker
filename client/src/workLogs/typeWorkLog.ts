@@ -1,5 +1,5 @@
  export type WorkLog = {
-  id: number;
+  id : number;
   workLogName: string;
   hourlyRate?: number;
   isActivated?: boolean;

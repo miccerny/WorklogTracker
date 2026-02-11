@@ -24,12 +24,15 @@ export async function apiGet<T>(endpoint: string): Promise<T> {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    throw new HttpRequestError(
-      "Network Error",
-      0, // Application code
-      0, // Http status unknown
-      `${API_URL}${endpoint}`,
-    );
+    if (error instanceof Error) {
+      throw new HttpRequestError(
+        error.message,
+        0, // Application code
+        0, // Http status unknown
+        `${API_URL}${endpoint}`,
+      );
+    }
+    throw new HttpRequestError("Unknown API error");
   }
 
   if (!response.ok) {
@@ -44,10 +47,84 @@ export async function apiGet<T>(endpoint: string): Promise<T> {
       errorBody?.message ?? response.statusText,
       errorBody?.code ?? -1,
       response.status,
-      errorBody?.details
+      errorBody?.details,
     );
   }
 
   return response.json() as Promise<T>;
+}
 
+export async function apiGetById<T>(endpoint: string, id: number): Promise<T> {
+  return apiGet(`${endpoint}/${id}`);
+}
+
+export async function apiPost<T, B>(endpoint: string, body: B): Promise<T> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_URL}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new HttpRequestError(
+        error.message,
+        0, // Application code
+        0, // Http status unknown
+        `${API_URL}${endpoint}`,
+      );
+    }
+    throw new HttpRequestError("Unknown network error");
+  }
+
+  if (!response.ok) {
+    let errorBody: ApiErrorBody | null = null;
+
+    try {
+      errorBody = await response.json();
+    } catch {
+      throw new HttpRequestError(
+        errorBody?.message ?? response.statusText,
+        errorBody?.code ?? -1,
+        response.status,
+        errorBody?.details,
+      );
+    }
+  }
+  return response.json() as Promise<T>;
+}
+
+export async function apiDelete(endpoint: string): Promise<void> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_URL}${endpoint}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new HttpRequestError(
+        `Network error při mazání ${endpoint}: ${error.message}`,
+        0,
+        0,
+        `${API_URL}${endpoint}`,
+      );
+    }
+    throw new HttpRequestError(
+      `Unknown network error při mazání ${endpoint}`,
+      0,
+      0,
+      `${API_URL}${endpoint}`,
+    );
+  }
+  if (!response.ok) {
+    throw new HttpRequestError(
+      `Chyba při mazání ${endpoint}: ${response.status}: ${response.statusText}`,
+      response.status,
+    );
+  }
 }

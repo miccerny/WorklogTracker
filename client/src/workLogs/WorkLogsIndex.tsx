@@ -3,6 +3,7 @@ import { apiGet } from "../utils/api";
 import { HttpRequestError } from "../errors/HttpRequestError";
 import WorkLogsTable from "./WorkLogTable";
 import type  { WorkLog } from "./typeWorkLog";
+import { Outlet } from "react-router-dom";
 
 
 
@@ -36,13 +37,11 @@ export const WorkLogs = () => {
     <>
       <h4>Work Logs</h4>
       <hr/>
-      <ul>
        <WorkLogsTable
         workLogs={WorkLogState}
         label = "Počet záznamů: "
        />
-
-      </ul>
+       <Outlet />
     </>
   )
 }

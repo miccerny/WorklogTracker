@@ -17,6 +17,14 @@ const TimerTable = ({
   errorState,
   workLogId,
 }: TimerTableProps) => {
+
+   if (timerData.length === 0) {
+    return <div>Nic nezměřeno</div>;
+  }
+
+  if (errorState) {
+    return <div style={{ color: "crimson" }}>{errorState}</div>;
+  }
   return (
     <>
       {errorState && <p>{errorState}</p>}

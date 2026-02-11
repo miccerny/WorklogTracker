@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { apiGet } from "../utils/api";
 import TimerTable from "./TimerTable";
 import type { Timer } from "./TimerType";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import formatDuration from "./formatDuration";
+
 
 const TimerIndex = () => {
   const [timerState, setTimerstate] = useState<Timer[]>([]);
@@ -26,19 +28,16 @@ const TimerIndex = () => {
       return;
     }
     loadTimer();
-  }, [workLogIdParam]);
+  }, [workLogId]);
 
-  const formatDuration = (totalSeconds: number): string => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-  };
 
   return (
     <>
+      <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+        {/* relativní přechod na sibling route */}
+        <Link to="../active-timer">Vytvořit timer</Link>
+      </div>
+
       <TimerTable
         timerData={timerState}
         label="Souhrn stopek"
