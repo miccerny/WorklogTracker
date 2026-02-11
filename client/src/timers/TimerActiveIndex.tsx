@@ -33,8 +33,7 @@ const TimerActiveIndex = () => {
   }, [workLogId]);
 
   const activeTimer = useMemo(() => {
-    const running = (timerActiveState as any[]).find((t) => !t.stoppedAt);
-    return running ?? null;
+    return timerActiveState.find((timer) => timer.status === "RUNNING") ?? null;
   }, [timerActiveState]);
 
   const isRunning = Boolean(activeTimer);
@@ -45,8 +44,7 @@ const TimerActiveIndex = () => {
     return () => window.clearInterval(id);
   }, [isRunning]);
 
-  const startedAt: string | null =
-    (activeTimer as any)?.startedAt ?? (activeTimer as any)?.createdAt ?? null;
+  const startedAt = activeTimer?.createdAt ?? null;
 
   const elapsedSeconds = useMemo(() => {
     if (!startedAt) return 0;

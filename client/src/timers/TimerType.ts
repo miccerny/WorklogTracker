@@ -4,5 +4,10 @@ export type Timer = ({
     createdAt: string;
     stoppedAt: string | null;
     durationInSeconds: number;
-    status: boolean;
+    status: TimerStatus;
+})
+
+type TimerStatus = ({
+  "RUNNING": string | boolean
+  "STOPPED": string | boolean
 })
