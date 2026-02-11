@@ -7,14 +7,14 @@ import formatDuration from "./formatDuration";
 
 const TimerActiveIndex = () => {
   const [timerActiveState, setTimerActiveState] = useState<Timer[]>([]);
-  const [erorState, setErrorState] = useState<string | null>(null);
+  const [errorState, setErrorState] = useState<string | null>(null);
 
   const [tick, setTick] = useState(0);
 
   const { workLogId: workLogIdParam } = useParams<{ workLogId: string }>();
   const workLogId = workLogIdParam ? Number(workLogIdParam) : null;
 
-  const loadTimerActiveStart = async () => {
+  const loadTimer = async () => {
     try {
       setErrorState(null);
       const data = await apiGet<Timer[]>(`/worklogs/${workLogId}/summary`);
@@ -29,7 +29,7 @@ const TimerActiveIndex = () => {
       setErrorState("Neplatné ID worklogu");
       return;
     }
-    loadTimerActiveStart();
+    loadTimer();
   }, [workLogId]);
 
   const activeTimer = useMemo(() => {
@@ -64,7 +64,7 @@ const TimerActiveIndex = () => {
         `/worklogs/${workLogId}/startTimer`,
         {},
       );
-      await loadTimerActiveStart();
+      await loadTimer();
     } catch (e: any) {
       setErrorState(e?.message ?? String(e));
     }
@@ -80,7 +80,7 @@ const TimerActiveIndex = () => {
         `/worklogs/${workLogId}/stopTimer`,
         {},
       );
-      await loadTimerActiveStart();
+      await loadTimer();
     } catch (e: any) {
       setErrorState(e?.message ?? String(e));
     }
@@ -95,7 +95,7 @@ const TimerActiveIndex = () => {
       <TimerActiveTable
         timeText={timeText}
         isRunning={isRunning}
-        errorState={erorState}
+        errorState={errorState}
         onStart={onStart}
         onStop={onStop}
       />
