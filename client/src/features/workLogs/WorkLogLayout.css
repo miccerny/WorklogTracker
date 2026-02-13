@@ -1,0 +1,28 @@
+/* =========================
+   WorkLogLayout
+   - levý panel: seznam worklogů
+   - pravý panel: detail (Outlet)
+   ========================= */
+
+.worklogs-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: var(--gap);
+  align-items: start;
+  margin-top: 14px; /* ať to sedí k .card spacing */
+}
+
+.worklogs-sidebar,
+.worklogs-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+@media (max-width: 900px) {
+  .worklogs-layout {
+    grid-template-columns: 1fr;
+  }
+}

@@ -73,7 +73,7 @@ class WorkLogServiceImplTest {
     }
 
     @Test
-    void addWorkLog_savesAndReturnDto() {
+    void createWorkLog_savesAndReturnDto() {
         when(workLogMapper.toEntity(inputDTO))
                 .thenReturn(inputEntity);
         when(workLogRepository.save(inputEntity))
@@ -81,7 +81,7 @@ class WorkLogServiceImplTest {
         when(workLogMapper.toDTO(savedEntity))
                 .thenReturn(savedDTO);
         WorkLogDTO result = workLogService
-                .addWorkLog(inputDTO);
+                .createWorkLog(inputDTO);
 
         assertThat(result).isEqualTo(savedDTO);
         verify(workLogMapper).toEntity(inputDTO);

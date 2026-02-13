@@ -7,15 +7,19 @@ import cz.timetracker.entity.repository.WorkLogRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
 /**
- * Simple service layer for work logs.
- * <p>
- * This class talks to the repository and mapper so we can keep controllers clean.
- * The comments are written in a beginner-friendly style to explain each step.
- * </p>
+ * Implementation of WorkLogService.
+ *
+ * This class contains business logic for:
+ * - creating WorkLogs
+ * - retrieving WorkLogs
+ * - deleting WorkLogs
+ *
+ * It coordinates repository layer and mapper.
  */
 @Service
 public class WorkLogServiceImpl implements WorkLogService {
@@ -25,10 +29,12 @@ public class WorkLogServiceImpl implements WorkLogService {
     private final WorkLogMapper workLogMapper;
 
     /**
-     * Creates the service with required dependencies.
+     * Constructor injection of dependencies.
      *
-     * @param workLogRepository repository used for database access
-     * @param workLogMapper mapper used to convert between entity and DTO
+     * Spring automatically injects repository and mapper.
+     *
+     * @param workLogRepository repository for DB operations
+     * @param workLogMapper mapper for converting entity <-> DTO
      */
     public WorkLogServiceImpl(WorkLogRepository workLogRepository,
                               WorkLogMapper workLogMapper) {
@@ -37,27 +43,40 @@ public class WorkLogServiceImpl implements WorkLogService {
     }
 
     /**
-     * Saves a new work log to the database.
+     * Creates new WorkLog.
      *
-     * @param projectTimer work log data from the API layer
-     * @return saved work log mapped back to a DTO
+     * Flow:
+     * 1. Map DTO to entity
+     * 2. Set creation timestamp
+     * 3. Save to DB
+     * 4. Return mapped DTO
      */
     @Transactional
     @Override
-    public WorkLogDTO addWorkLog(WorkLogDTO projectTimer) {
+    public WorkLogDTO createWorkLog(WorkLogDTO projectTimer) {
+
+        // Convert DTO (incoming request) to entity.
         WorkLogEntity workLogEntity = workLogMapper.toEntity(projectTimer);
+
+        // Persist entity into database.
         WorkLogEntity savedEntity = workLogRepository.save(workLogEntity);
+
+        // Convert saved entity back to DTO and return.
         return workLogMapper.toDTO(savedEntity);
     }
 
     /**
-     * Returns all work logs from the database.
+     * Returns all WorkLogs for given user.
      *
-     * @return list of work log DTOs
+     * @param userId ID of the owner user
+     * @return list of WorkLogDTO
      */
     @Transactional(readOnly = true)
     @Override
     public List<WorkLogDTO> getAllWorkLogs() {
+
+
+        // Load entities from DB filtered by user ID.
         return StreamSupport.stream(workLogRepository.findAll().spliterator(),
                         false).map(i -> workLogMapper.toDTO(i))
                 .toList();
@@ -85,15 +104,19 @@ public class WorkLogServiceImpl implements WorkLogService {
     }
 
     /**
-     * Deletes a work log by id.
+     * Deletes WorkLog by ID.
      *
-     * @param id id of the work log to remove
+     * @param id WorkLog ID
+     * @throws NotFoundException if WorkLog does not exist
      */
     @Transactional
     @Override
     public void deleteWorkLog(Long id) {
+
+        // Validate existence before delete (better error message).
         WorkLogEntity existing = workLogRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Project " + id + "nenalezen"));
+        // Perform deletion.
         workLogRepository.delete(existing);
     }
 }

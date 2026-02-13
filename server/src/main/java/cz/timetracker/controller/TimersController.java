@@ -1,25 +1,50 @@
 package cz.timetracker.controller;
 
 import cz.timetracker.dto.TimerDTO;
-import cz.timetracker.dto.WorkLogDTO;
-import cz.timetracker.entity.enums.TimerType;
 import cz.timetracker.service.TimerService;
 import cz.timetracker.service.WorkLogService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST controller responsible for handling HTTP requests related to Timers.
+ *
+ * <p>This controller acts as an entry point between the frontend (React app)
+ * and the backend business logic (TimerService).
+ *
+ * <p>Main responsibility:
+ * <ul>
+ *     <li>Receive HTTP requests</li>
+ *     <li>Delegate logic to the service layer</li>
+ *     <li>Return properly formatted HTTP responses</li>
+ * </ul>
+ *
+ * <p>Note: This class does NOT contain business logic.
+ * All calculations and rules should be implemented inside the service layer.
+ */
 @RestController
 @RequestMapping("/api/worklogs")
 public class TimersController{
 
     private final TimerService timerService;
-    private final WorkLogService workLogService;
 
+    /**
+     * Constructor-based dependency injection.
+     *
+     * <p>Spring automatically injects TimerService bean here.
+     * This is the recommended way because:
+     * <ul>
+     *     <li>Field is immutable (final)</li>
+     *     <li>Better for testing</li>
+     *     <li>Clear dependency declaration</li>
+     * </ul>
+     *
+     * @param timerService service layer responsible for timer logic
+     */
     public TimersController (TimerService timerService,
                              WorkLogService workLogService){
         this.timerService = timerService;
-        this.workLogService = workLogService;
     }
 
     @GetMapping("/{workLogId}/summary")
@@ -27,11 +52,41 @@ public class TimersController{
         return timerService.getAllTimers(workLogId);
     }
 
+    /**
+     * Starts a new timer under a specific WorkLog.
+     *
+     * <p>Flow:
+     * <ul>
+     *     <li>Frontend sends POST request</li>
+     *     <li>Controller delegates to service</li>
+     *     <li>Service creates and stores new timer (with startedAt timestamp)</li>
+     *     <li>Response DTO is returned to frontend</li>
+     * </ul>
+     *
+     * @param workLogId ID of the WorkLog under which the timer should be created
+     * @return ResponseEntity containing created TimerResponseDto
+     */
     @PostMapping("/{workLogId}/startTimer")
     public TimerDTO startTimer(@PathVariable Long workLogId){
+        // Call service layer to create, start a new timer and HTTP 200 OK with response body
         return timerService.startTimer(workLogId);
     }
 
+    /**
+     * Stops an existing timer.
+     *
+     * <p>Flow:
+     * <ul>
+     *     <li>Frontend sends POST request to stop specific timer</li>
+     *     <li>Controller calls service layer</li>
+     *     <li>Service calculates duration (difference between start and stop)</li>
+     *     <li>Timer entity is updated in database</li>
+     * </ul>
+     *
+     * @param workLogId ID of the parent WorkLog
+     * @param timerId ID of the timer that should be stopped
+     * @return ResponseEntity containing updated TimerResponseDto
+     */
     @PostMapping("/{workLogId}/stopTimer")
     public TimerDTO stopTimer( @PathVariable Long workLogId){
         return timerService.stopTimer(workLogId);

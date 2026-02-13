@@ -19,7 +19,7 @@ public class WorkLogController {
 
     @PostMapping("/worklogs")
     public WorkLogDTO addProject(@RequestBody WorkLogDTO workLogDTO){
-        return workLogService.addWorkLog(workLogDTO);
+        return workLogService.createWorkLog(workLogDTO);
     }
 
     @GetMapping("/worklogs")
