@@ -1,54 +1,114 @@
 package cz.timetracker.configuration;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SecretJwk;
-import lombok.Value;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
 /**
- * Generates JWT access tokens for authenticated users.
+ * Jednoduchá servisní třída pro práci s JWT tokeny.
  *
- * Note:
- * Uses JJWT builder fluent API (subject/issuedAt/expiration),
- * because older setter-based methods are deprecated in newer JJWT versions.
+ * <p>Co tady řešíme:
+ * <ul>
+ *     <li>vytvoření tokenu po úspěšném přihlášení,</li>
+ *     <li>získání username (subjectu) z tokenu,</li>
+ *     <li>ověření, že token patří danému uživateli a neexpiroval.</li>
+ * </ul>
  */
 @Service
 public class JWTService {
 
-    /** Token validity duration (e.g., 1 hour). */
-    private static final Duration ACCESS_TOKEN_TTL = Duration.ofHours(1);
-
-    private final Key signingKey;
-
-    public JWTService(@Value("${security.jwt.secret}") String secret) {
-        // Important: for HS256 the secret must be sufficiently long (>= 256 bits => 32+ bytes).
-        // Using UTF-8 to avoid platform-dependent charset issues.
-        this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-    }
+    /**
+     * Jak dlouho bude access token platit.
+     */
+   private static final Duration ACCES_TOKEN_TTL = Duration.ofHours(1);
 
     /**
-     * Creates a signed JWT token for the given user.
+     * Tajný klíč pro podepisování a validaci tokenů.
      */
-    public String generateToken(UserDetails user) {
-        Instant now = Instant.now();
-        Instant expiresAt = now.plus(JWTService.ACCESS_TOKEN_TTL);
+   private final SecretKey signingKey;
 
-        return Jwts.builder()
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(expiresAt))
-                .id(UUID.randomUUID().toString()) // jti: helps with token tracking/revocation lists
-                .signWith(signingKey, SignatureAlgorithm.HS256) // explicit algorithm (stable + clear)
-                .compact();
 
-    }
+   public JWTService(@Value("${security.jwt.secret}") String secret){
+       this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+   }
+
+    /**
+     * Vygeneruje JWT token pro přihlášeného uživatele.
+     *
+     * @param user přihlášený uživatel
+     * @return podepsaný JWT string
+     */
+   public String generateToken(UserDetails user){
+       Instant now = Instant.now();
+       Instant expiratesAt = now.plus(ACCES_TOKEN_TTL);
+
+       return Jwts.builder()
+               // subject = hlavní identifikátor uživatele (u nás email/username)
+               .subject(user.getUsername())
+               // iat = čas vystavení tokenu
+               .issuedAt(Date.from(now))
+               // exp = čas expirace
+               .expiration(Date.from(expiratesAt))
+               // jti = unikátní ID tokenu
+               .id(UUID.randomUUID().toString())
+               // podepsání tokenu klíčem + HS256
+               .signWith(signingKey, SignatureAlgorithm.HS256)
+               .compact();
+   }
+
+    /**
+     * Vytáhne username (subject) z tokenu.
+     *
+     * @param token JWT token z Authorization headeru
+     * @return username uložený v subject claimu
+     */
+   public String extractUsername(String token){
+       return extractAllClaims(token).getSubject();
+   }
+
+    /**
+     * Ověří, že token odpovídá konkrétnímu uživateli a neexpiroval.
+     *
+     * @param token JWT token
+     * @param userDetails uživatel načtený z DB
+     * @return true pokud je token validní
+     */
+   public boolean isTokenValid(String token, UserDetails userDetails){
+       String username = extractUsername(token);
+       return username
+               .equals(userDetails
+                       .getUsername()) && !isTokenExpired(token);
+   }
+
+    /**
+     * Zjistí, zda token expiroval.
+     */
+   private boolean isTokenExpired(String token){
+       return extractAllClaims(token).getExpiration()
+               .before(new Date());
+   }
+
+    /**
+     * Rozparsuje a ověří podpis tokenu, pak vrátí Claims.
+     */
+   private Claims extractAllClaims(String token){
+       return Jwts.parser()
+               .verifyWith(signingKey)
+               .build()
+               .parseSignedClaims(token)
+               .getPayload();
+   }
+
+
 }

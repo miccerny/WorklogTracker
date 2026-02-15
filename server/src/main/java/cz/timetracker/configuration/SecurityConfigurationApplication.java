@@ -3,11 +3,17 @@ package cz.timetracker.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -15,34 +21,33 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 /**
- * Spring Security configuration for the application.
+ * * Spring Security konfigurace aplikace.
  *
- * <p>This class defines:
+ * <p>Nastavuje stateless JWT přístup:
  * <ul>
- *   <li>Security filter chain (basic request authorization, CSRF handling)</li>
- *   <li>CORS configuration (which front-end origins can call the API)</li>
- * </ul>
+ *   <li>/api/auth/** je veřejné (login/registrace),</li>
+ *    <li>ostatní /api/** endpointy vyžadují validní JWT token,</li>
+ *   <li>requesty jsou bez session (STATELESS).</li>
+ *   * </ul>
  *
- * <p>Note: Right now the rules are very permissive (everything is allowed).
- * This is typical for early development, but in production you usually restrict endpoints and enable proper auth.
  */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfigurationApplication {
 
+    private final JWTAuthenticationFilter jwtAuthenticationFilter;
+
+    private final UserDetailsService userDetailsService;
+
+    public SecurityConfigurationApplication(JWTAuthenticationFilter jwtAuthenticationFilter,
+                                            UserDetailsService userDetailsService) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.userDetailsService = userDetailsService;
+    }
+
+
     /**
-     * Builds the main Spring Security filter chain.
-     *
-     * <p>What it does:
-     * <ul>
-     *   <li>Enables CORS using the {@link CorsConfigurationSource} bean</li>
-     *   <li>Disables CSRF protection (common for stateless APIs, but needs careful consideration)</li>
-     *   <li>Allows requests to the API endpoints (and currently all other requests too)</li>
-     * </ul>
-     *
-     * @param httpSecurity Spring Security DSL builder used to configure HTTP security
-     * @return configured {@link SecurityFilterChain} used by Spring Security
-     * @throws Exception if the configuration cannot be built
+     * Sestaví hlavní security filter chain.
      */
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -56,21 +61,37 @@ public class SecurityConfigurationApplication {
                 .csrf(csrf -> csrf.disable())
 
 
-                .sessionManagement(session ->session
+                .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
                 // Authorization rules: who can access which URL.
                 .authorizeHttpRequests(auth -> auth
 
                         // Allow access to any endpoint under /api/**
-                        .requestMatchers("/api/**").permitAll()
-
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/**").authenticated()
                         // Allow access to everything else as well (very open setup).
                         // Later you might change this to authenticated() or define more matchers.
                         .anyRequest().permitAll())
 
                 // Finalize and create the filter chain instance used by Spring Security.
                 .build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider(){
+        DaoAuthenticationProvider
+                authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setUserDetailsPasswordService(userDetailsService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
+        return authenticationProvider;
     }
 
     /**
@@ -90,7 +111,7 @@ public class SecurityConfigurationApplication {
      * @return {@link CorsConfigurationSource} used by Spring Security and Spring MVC
      */
     @Bean
-    public CorsConfigurationSource corsConfigurationSource(){
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Allowed origins = which frontend URLs are allowed to call this backend from the browser.
