@@ -4,6 +4,7 @@ import { apiGet, apiPost } from "../../utils/api";
 import { Link, useParams } from "react-router-dom";
 import TimerActiveTable from "./ActiveTimerPanel";
 import formatDuration from "./formatDuration";
+import { useFlash } from "../../context/flash";
 
 /**
  * TimerActiveIndex component.
@@ -46,6 +47,8 @@ const TimerActiveIndex = () => {
    * Convert param to number (or null if missing).
    */
   const workLogId = workLogIdParam ? Number(workLogIdParam) : null;
+
+  const {showFlash} = useFlash();
 
   /**
    * Loads timers data from backend for current workLogId.
@@ -183,6 +186,7 @@ const TimerActiveIndex = () => {
 
       // Reload timers so UI shows STOPPED result and stops ticking
       await loadTimer();
+      showFlash("success", "Časovač ukončen a uložen", 2000);
     } catch (e: any) {
       setErrorState(e?.message ?? String(e));
     }

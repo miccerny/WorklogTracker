@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiGetById, apiPost, apiPut } from "../../utils/api";
 import type { WorkLogType } from "./WorkLog.types";
+import WorkLogFormPanel from "./WorkLogFormPanel";
+import { useFlash } from "../../context/flash";
 
 /**
  * Props for WorkLogForm component.
@@ -40,6 +42,8 @@ const WorkLogForm = ({ mode }: Props) => {
   // If workLogId is missing (e.g. create mode), idNumber becomes null.
   const idNumber = workLogId ? Number(workLogId) : null;
 
+  const {showFlash} = useFlash();
+
   /**
    * In edit mode, load WorkLog detail and prefill input.
    *
@@ -72,6 +76,7 @@ const WorkLogForm = ({ mode }: Props) => {
       } catch (error: any) {
         // If API throws error, we show message if available.
         setErrorState(error.message ?? "Chyba při načítání");
+        
       } finally {
         setLoading(false);
       }
@@ -111,52 +116,26 @@ const WorkLogForm = ({ mode }: Props) => {
 
       // After success, navigate back to list page.
       navigate("/worklogs");
+      showFlash("success", "Uloženo");
     } catch (error: any) {
       // Show error message for API failure.
       setErrorState(error.message ?? "Chyba při ukládání");
+      showFlash("error", "Odeslání se nezdařilo", 2000);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form
-      // Form submit handler
-      onSubmit={handleSubmit}
-      // Simple inline layout: grid with spacing, limited width
-      style={{ display: "grid", gap: 12, maxWidth: 400 }}
-    >
-      {/* Title changes depending on mode */}
-      <h2>{mode === "create" ? "Vytvořit worklog" : "Upravit worklog"}</h2>
-
-      {/* Controlled input: value comes from state, onChange updates state */}
-      <input
-        value={workLogName}
-        onChange={(e) => setWorkLogName(e.target.value)}
-        // Disable input while loading to prevent double actions
-        disabled={loading}
-      />
-
-      {/* Show error message if errorState is not null */}
-      {errorState && <div style={{ color: "crimson" }}>{errorState}</div>}
-
-      {/* Buttons row */}
-      <div style={{ display: "flex", gap: 10 }}>
-        {/* Submit button triggers onSubmit */}
-        <button type="submit" disabled={loading}>
-          {mode === "create" ? "Vytvořit" : "Uložit"}
-        </button>
-
-        {/* Cancel button navigates back without submit */}
-        <button
-          type="button"
-          onClick={() => navigate("/worklogs")}
-          disabled={loading}
-        >
-          Zrušit
-        </button>
-      </div>
-    </form>
+    <WorkLogFormPanel 
+      handleSubmit = {handleSubmit}
+      mode = {mode}
+      workLogName = {workLogName}
+      loading = {loading}
+      errorState = {errorState}
+      navigate = {navigate}
+      setWorkLogName = {setWorkLogName}
+    />
   );
 };
 export default WorkLogForm;

@@ -1,0 +1,3 @@
+security:
+  jwt:
+    secret: SEM_DEJ_DLOUHY_SECRET_MIN_32_ZNAKU_NEBO_LEPE_BASE64

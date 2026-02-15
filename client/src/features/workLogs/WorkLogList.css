@@ -1,0 +1,149 @@
+/* =========================
+   WorkLogsTable (wl)
+   - design ladí s "card" a root proměnnými
+   - vše je namespacované přes .wl, aby to neovlivnilo jiné <ul>/<li>
+   ========================= */
+
+/* Kontejner využívá tvoji .card třídu (už ji máš), tady jen doplňky */
+.wl {
+  display: block;
+}
+
+/* Hlavička uvnitř cardu: nadpis vlevo, počet vpravo */
+.wl__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+
+  margin-bottom: 8px; /* jemný odstup od meta textu */
+}
+
+/* Nadpis sekce – podobně výrazný jako .section-title, ale pro <h4> */
+.wl__title {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 0.2px;
+}
+
+/* “Badge” s počtem worklogů */
+.wl__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 28px;
+  height: 28px;
+  padding: 0 10px;
+
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* Meta text (label + počet) – tlumené, ať to nekřičí */
+.wl__meta {
+  margin: 0 0 14px;
+}
+
+/* Stavové texty (loading/error) */
+.wl__state {
+  margin: 0 0 12px;
+}
+
+/* Error laděný do “jemné červené”, aby to nebylo jak výstraha z 90s */
+.wl__state--error {
+  color: #ff9a9a; /* schválně ne čistě red */
+}
+
+/* Seznam bez defaultních odrážek, hezky “table-like” */
+.wl__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  display: grid;
+  gap: 10px; /* mezera mezi řádky */
+}
+
+/* Jeden řádek worklogu */
+.wl__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+
+  padding: 12px 12px;
+  border-radius: 12px;
+
+  background: var(--surface-2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+/* Jemný hover – v rámci tvého dark designu */
+.wl__item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+/* Název worklogu (hlavní link) – ať zabere prostor a zalomí se hezky */
+.wl__name {
+  display: block;
+  min-width: 0;            /* důležité pro ellipsis ve flexu */
+  flex: 1;
+
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* Když je název dlouhý, nechceme rozbít layout */
+.wl__name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Hover na názvu – použije tvůj akcent */
+.wl__name:hover {
+  color: var(--accent);
+  text-decoration: none; /* necháme “button-like” feeling */
+}
+
+/* Pravá strana – akce (teď jen Upravit, ale můžeš přidat další) */
+.wl__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Akční link vypadá jako button (použije tvoji .btn třídu) */
+.wl__action {
+  text-decoration: none; /* vypneme underline */
+  white-space: nowrap;
+}
+
+/* Responzivita:
+   - na úzkém displeji se řádek rozpadne do dvou řádků (název nahoře, akce dole vpravo) */
+@media (max-width: 480px) {
+  .wl__item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wl__actions {
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .wl__name {
+    width: 100%;
+  }
+}

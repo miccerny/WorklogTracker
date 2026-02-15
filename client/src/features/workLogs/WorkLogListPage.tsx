@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { apiGet } from "../../utils/api";
 import { HttpRequestError } from "../../errors/HttpRequestError";
-import WorkLogsTable from "./WorkLogListPanel";
+import WorkLogListPanel from "./WorkLogListPanel";
 import type { WorkLogType } from "./WorkLog.types";
-import { Link} from "react-router-dom";
-
+import { Link } from "react-router-dom";
 
 /**
  * WorkLogs page component.
@@ -20,8 +19,7 @@ import { Link} from "react-router-dom";
  *   so it runs once when the component mounts.
  */
 export const WorkLogListPage = () => {
-
-   /**
+  /**
    * Indicates whether the initial request is currently in progress.
    * Used to show spinner / disabled UI in WorkLogsTable.
    */
@@ -33,14 +31,13 @@ export const WorkLogListPage = () => {
    */
   const [workLogState, setWorkLogState] = useState<WorkLogType[]>([]);
 
-   /**
+  /**
    * Stores a user-facing error message.
    * Empty string means "no error".
    */
   const [errorState, setErrorState] = useState<string>("");
 
   useEffect(() => {
-
     /**
      * Loads WorkLogs from the API.
      * Wrapped into an async function because useEffect callback itself can't be async.
@@ -57,7 +54,7 @@ export const WorkLogListPage = () => {
         const response = await apiGet<WorkLogType[]>("/worklogs");
         setWorkLogState(response);
       } catch (error) {
-         /**
+        /**
          * We handle our custom HttpRequestError separately
          * because it carries a structured message/status/code.
          */
@@ -78,11 +75,10 @@ export const WorkLogListPage = () => {
 
   return (
     <>
-    {/* Navigates to WorkLog create form */}
-      <Link to="/worklogs/new">+ Vytvořit worklog</Link>
+      
 
       {/* Presentational component rendering the table */}
-      <WorkLogsTable
+      <WorkLogListPanel
         workLogs={workLogState}
         label="Počet záznamů: "
         loading={loading}

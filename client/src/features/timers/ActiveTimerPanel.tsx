@@ -1,3 +1,5 @@
+import Button from "../../components/Button";
+
 /**
  * Props for TimerActiveTable component.
  *
@@ -58,14 +60,14 @@ const TimerActiveTable = ({
       <div style={{ display: "flex", gap: 10 }}>
         {/* Start button:
             Disabled when timer is already running */}
-        <button onClick={onStart} disabled={isRunning}>
+        <Button onClick={onStart} disabled={isRunning}>
           Start
-        </button>
+        </Button>
         {/* Stop button:
             Disabled when timer is NOT running */}
-        <button onClick={onStop} disabled={!isRunning}>
+        <Button onClick={onStop} disabled={!isRunning}>
           Stop
-        </button>
+        </Button>
       </div>
     </div>
   );

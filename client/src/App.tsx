@@ -12,7 +12,7 @@ import "./App.css";
 // Pages / layouts
 import { WorkLogListPage} from "./features/workLogs/WorkLogListPage";
 import WorkLogLayout from "./features/workLogs/WorkLogLayout";
-import WorkLogForm from "./features/workLogs/WorkLogForm";
+import WorkLogForm from "./features/workLogs/WorkLogFormPage";
 
 // Timer pages
 import TimerIndex from "./features/timers/TimerListPage";

@@ -1,12 +1,14 @@
 package cz.timetracker.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.Email;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * JPA entity representing application user.
@@ -21,7 +23,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Setter
-public class UserEntity {
+public class UserEntity implements UserDetails {
 
     /**
      * Primary key of the user.
@@ -37,7 +39,8 @@ public class UserEntity {
      * Used for login / identification.
      */
     @Column(nullable = false)
-    private String email;
+    @Email
+    private String username;
 
     /**
      * User's display name.
@@ -49,5 +52,17 @@ public class UserEntity {
     private String password;
 
     @Column
-    private LocalDateTime cratedAt;
+    private LocalDateTime createdAt;
+
+    public UserEntity(String username, String name, String encodedPassword) {
+        this.username = username;
+        this.name = name;
+        this.password = encodedPassword;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
 }

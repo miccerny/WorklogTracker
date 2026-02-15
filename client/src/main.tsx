@@ -10,19 +10,20 @@
  * - Configure routing using BrowserRouter
  * - Render the main App component
  */
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
-import { BrowserRouter } from 'react-router-dom'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.tsx";
+import { BrowserRouter } from "react-router-dom";
+import { FlashProvider } from "./context/flash.tsx";
 
 // Get the root DOM element from index.html
 // The non-null assertion (!) tells TypeScript that we are sure
 // the element exists (because Vite template guarantees it).
-const rootElement = document.getElementById('root')!
+const rootElement = document.getElementById("root")!;
 
 // Create React root (React 18 concurrent rendering API)
-const root = createRoot(rootElement)
+const root = createRoot(rootElement);
 
 // Render the application tree
 root.render(
@@ -34,13 +35,14 @@ root.render(
     */}
 
     <BrowserRouter>
-      {/*
+      <FlashProvider>
+        {/*
         BrowserRouter enables client-side routing using
         the HTML5 history API. All routes inside App
         can now use react-router features.
       */}
-      <App />
+        <App />
+      </FlashProvider>
     </BrowserRouter>
-
   </StrictMode>,
-)
+);

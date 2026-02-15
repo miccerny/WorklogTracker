@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -53,6 +54,10 @@ public class SecurityConfigurationApplication {
                 // CSRF is mainly relevant for browser-based sessions with cookies.
                 // For APIs (especially with tokens) it is often disabled, but it depends on your auth approach.
                 .csrf(csrf -> csrf.disable())
+
+
+                .sessionManagement(session ->session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // Authorization rules: who can access which URL.
                 .authorizeHttpRequests(auth -> auth
