@@ -2,6 +2,7 @@ package cz.timetracker.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,6 +41,7 @@ public class UserEntity implements UserDetails {
      */
     @Column(nullable = false)
     @Email
+    @NotBlank
     private String username;
 
     /**
@@ -54,9 +56,12 @@ public class UserEntity implements UserDetails {
     @Column
     private LocalDateTime createdAt;
 
-    public UserEntity(String username, String name, String encodedPassword) {
-        this.username = username;
+    @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = CascadeType.ALL)
+    private List<WorkLogEntity> worklog;
+
+    public UserEntity(String name, String username, String encodedPassword) {
         this.name = name;
+        this.username = username;
         this.password = encodedPassword;
         this.createdAt = LocalDateTime.now();
     }

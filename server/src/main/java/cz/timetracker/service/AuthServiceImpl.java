@@ -13,7 +13,9 @@ import cz.timetracker.service.exceptions.NotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
+@Service
 public class AuthServiceImpl implements  AuthService{
 
     private final UserRespository userRespository;
@@ -40,11 +42,19 @@ public class AuthServiceImpl implements  AuthService{
 
         UserEntity userEntity = new UserEntity(
                 user.name(),
-                user.username(),
+                user.username().trim(),
                 passwordEncoder.encode(user.password())
         );
 
         UserEntity saved = userRespository.save(userEntity);
+        System.out.println("USERNAME=[" + user.username() + "]");
+        System.out.println("RAW=[" + user + "]");
+        System.out.println("LEN=" + (user.username() == null ? null : user.username().length()));
+        System.out.println("CHARS=" + (user.username() == null ? null :
+                user.username().chars()
+                        .mapToObj(c -> c + "('" + (char)c + "')")
+                        .toList()
+        ));
         return userMapper.toDTO(saved);
     }
 

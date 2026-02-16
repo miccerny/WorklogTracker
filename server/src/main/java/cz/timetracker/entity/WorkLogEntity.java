@@ -65,4 +65,8 @@ public class WorkLogEntity {
     @OneToMany(mappedBy = "workLog", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<TimerEntity> timers;
 
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "owner_id")
+    private UserEntity owner;
+
 }

@@ -26,7 +26,7 @@ public class ApplicationUserDetailsService implements UserDetailsService {
      * @return UserDetails objekt
      */
     @Override
-    public UserDetails loadUserByUserName(String username){
+    public UserDetails loadUserByUsername(String username){
         return userRespository.findByUsername(username).
                 orElseThrow(() -> new NotFoundException("Uživatel nebyl nalezen"));
 

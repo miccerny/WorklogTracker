@@ -2,14 +2,19 @@ package cz.timetracker.service;
 
 import cz.timetracker.dto.WorkLogDTO;
 import cz.timetracker.dto.mapper.WorkLogMapper;
+import cz.timetracker.entity.UserEntity;
 import cz.timetracker.entity.WorkLogEntity;
+import cz.timetracker.entity.repository.UserRespository;
 import cz.timetracker.entity.repository.WorkLogRepository;
+import cz.timetracker.service.exceptions.NotFoundException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.StreamSupport;
+
 
 /**
  * Implementation of WorkLogService.
@@ -28,6 +33,8 @@ public class WorkLogServiceImpl implements WorkLogService {
 
     private final WorkLogMapper workLogMapper;
 
+    private final UserRespository userRespository;
+
     /**
      * Constructor injection of dependencies.
      *
@@ -37,9 +44,11 @@ public class WorkLogServiceImpl implements WorkLogService {
      * @param workLogMapper mapper for converting entity <-> DTO
      */
     public WorkLogServiceImpl(WorkLogRepository workLogRepository,
-                              WorkLogMapper workLogMapper) {
+                              WorkLogMapper workLogMapper,
+                              UserRespository userRespository) {
         this.workLogRepository = workLogRepository;
         this.workLogMapper = workLogMapper;
+        this.userRespository = userRespository;
     }
 
     /**
@@ -54,11 +63,12 @@ public class WorkLogServiceImpl implements WorkLogService {
     @Transactional
     @Override
     public WorkLogDTO createWorkLog(WorkLogDTO projectTimer) {
-
+        UserEntity user = getCurrentUser();
         // Convert DTO (incoming request) to entity.
         WorkLogEntity workLogEntity = workLogMapper.toEntity(projectTimer);
 
         // Persist entity into database.
+        workLogEntity.setOwner(user);
         WorkLogEntity savedEntity = workLogRepository.save(workLogEntity);
 
         // Convert saved entity back to DTO and return.
@@ -68,17 +78,17 @@ public class WorkLogServiceImpl implements WorkLogService {
     /**
      * Returns all WorkLogs for given user.
      *
-     * @param userId ID of the owner user
      * @return list of WorkLogDTO
      */
     @Transactional(readOnly = true)
     @Override
     public List<WorkLogDTO> getAllWorkLogs() {
-
+        UserEntity user = getCurrentUser();
 
         // Load entities from DB filtered by user ID.
-        return StreamSupport.stream(workLogRepository.findAll().spliterator(),
-                        false).map(i -> workLogMapper.toDTO(i))
+        return workLogRepository.findByOwnerId(user.getId())
+                .stream()
+                .map(workLogMapper::toDTO)
                 .toList();
     }
 
@@ -92,7 +102,8 @@ public class WorkLogServiceImpl implements WorkLogService {
     @Transactional
     @Override
     public WorkLogDTO updateWorkLog(WorkLogDTO workLogDTO, Long id) {
-        WorkLogEntity existing = workLogRepository.findById(id)
+        UserEntity entity = getCurrentUser();
+        WorkLogEntity existing = workLogRepository.findByIdAndOwnerId(id, entity.getId())
                 .orElseThrow(() -> new RuntimeException("Project " + id + "nenalezen"));
         existing.setActivated(false);
         workLogRepository.save(existing);
@@ -112,11 +123,26 @@ public class WorkLogServiceImpl implements WorkLogService {
     @Transactional
     @Override
     public void deleteWorkLog(Long id) {
+            // Validate existence before delete (better error message)
 
-        // Validate existence before delete (better error message).
-        WorkLogEntity existing = workLogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project " + id + "nenalezen"));
-        // Perform deletion.
-        workLogRepository.delete(existing);
+            // Perform deletion.
+            workLogRepository.delete(existing(id));
+    }
+
+    private UserEntity getCurrentUser(){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new AccessDeniedException("Unauthorized");
+        }
+        String username = auth.getName();
+        return userRespository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found " + username));
+    }
+
+    private WorkLogEntity existing(Long id){
+        UserEntity userEntity = getCurrentUser();
+        return workLogRepository.findByIdAndOwnerId(id, userEntity.getId())
+                .orElseThrow(() -> new NotFoundException("Worklog not found: " + id));
+
     }
 }

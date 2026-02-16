@@ -1,6 +1,7 @@
 package cz.timetracker.service;
 
 import cz.timetracker.dto.WorkLogDTO;
+import cz.timetracker.dto.user.LoginRequest;
 
 import java.util.List;
 

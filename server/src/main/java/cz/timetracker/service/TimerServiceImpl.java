@@ -145,6 +145,37 @@ public class TimerServiceImpl implements TimerService{
         return  timerMapper.toDTO(lastSaved);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public TimerDTO getActiveTimer(Long workLogId) {
+        TimerEntity runningTimer = timerRepository.findFirstByWorkLogIdAndStatusOrderByStartedAtDesc(workLogId, TimerType.RUNNING)
+                .orElseThrow(() -> new NotFoundException("No active timer for worklog " +workLogId));
+
+        return timerMapper.toDTO(runningTimer);
+    }
+
+    @Transactional
+    @Override
+    public TimerDTO stopActiveTimer(Long id) {
+        TimerEntity runningTimer = timerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Timer with ID " + id + " not found"));
+
+        // Jediná povolená “úprava”: stop, jen když běží
+        if (runningTimer.getStatus() != TimerType.RUNNING) {
+            throw new ConflictException("Timer is not running: " + id);
+        }
+
+        LocalDateTime stoppedAt = LocalDateTime.now();
+
+        // worklog už na timeru máš, není nutné ho znovu tahat přes repository
+        WorkLogEntity workLogEntity = runningTimer.getWorkLog();
+
+        List<TimerEntity> savedTimers = stopAndSplitTimerIfNeeded(runningTimer, stoppedAt, workLogEntity);
+
+        TimerEntity lastSaved = savedTimers.get(savedTimers.size() - 1);
+        return timerMapper.toDTO(lastSaved);
+    }
+
     /**
      * Returns all timers for a given WorkLog.
      *
@@ -170,6 +201,7 @@ public class TimerServiceImpl implements TimerService{
                     .toList();
 
     }
+
 
     /**
      * Stops a RUNNING timer and optionally splits it into two timers if it crosses midnight.
@@ -242,6 +274,4 @@ public class TimerServiceImpl implements TimerService{
         TimerEntity secondSaved = timerRepository.save(overFlowTimer);
         return List.of(firstSaved, secondSaved);
     }
-
-
 }

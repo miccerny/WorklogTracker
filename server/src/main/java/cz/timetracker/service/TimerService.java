@@ -42,6 +42,9 @@ public interface TimerService {
      */
     TimerDTO stopTimer(Long id);
 
+    TimerDTO getActiveTimer(Long workLogId);
+
+    TimerDTO stopActiveTimer(Long id);
 
     /**
      * Returns list of timers for given WorkLog.
