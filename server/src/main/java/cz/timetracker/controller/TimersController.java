@@ -84,11 +84,48 @@ public class TimersController{
      * </ul>
      *
      * @param workLogId ID of the parent WorkLog
-     * @param timerId ID of the timer that should be stopped
      * @return ResponseEntity containing updated TimerResponseDto
      */
     @PostMapping("/{workLogId}/stopTimer")
     public TimerDTO stopTimer( @PathVariable Long workLogId){
         return timerService.stopTimer(workLogId);
+    }
+
+    /**
+     * Returns the active timer for the given WorkLog.
+     *
+     * <p>In this project, an "active timer" typically means a timer that is currently running
+     * (for example: it has a start time and does not have an end time yet).</p>
+     *
+     * <p><b>Note</b> Any validation (worklog existence, ownership, active timer existence)
+     * should happen inside the service layer. The controller only delegates the request.</p>
+     *
+     * @param workLogId ID of the WorkLog for which we want to find the active timer
+     * @return {@link TimerDTO} representing the active timer
+     */
+    @GetMapping("/{workLogId}/active-timer")
+    public TimerDTO getActiveTimer(@PathVariable Long workLogId){
+        // Delegate business logic to the service layer.
+        // (Controller should stay thin: input -> service -> output.)
+        return  timerService.getActiveTimer(workLogId);
+    }
+
+    /**
+     * Stops an active timer.
+     *
+     * <p>This endpoint is designed to change the timer state from "running" to "stopped".
+     * The actual stop logic (setting end time, computing duration, validations, persistence)
+     * is handled by the service layer.</p>
+     *
+     * <p><b>Note:</b> We use PUT here because we are updating an existing timer resource
+     * (we are not creating a new record).</p>
+     *
+     * @param timerId ID of the timer that should be stopped
+     * @return {@link TimerDTO} representing the updated timer after it was stopped
+     */
+    @PutMapping("/active-timer/{timerId}")
+    public TimerDTO stopActiveTimer(@PathVariable Long timerId){
+        // Delegate the update operation to the service layer.
+        return timerService.stopActiveTimer(timerId);
     }
 }

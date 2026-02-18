@@ -3,9 +3,10 @@ package cz.timetracker.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -21,24 +22,33 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 /**
- * * Spring Security konfigurace aplikace.
+ * Main Spring Security configuration for the application.
  *
- * <p>Nastavuje stateless JWT přístup:
+ * <p>This class defines:</p>
  * <ul>
- *   <li>/api/auth/** je veřejné (login/registrace),</li>
- *    <li>ostatní /api/** endpointy vyžadují validní JWT token,</li>
- *   <li>requesty jsou bez session (STATELESS).</li>
- *   * </ul>
+ *     <li>which endpoints are public and which require authentication,</li>
+ *     <li>how authentication is handled (JWT-based, stateless),</li>
+ *     <li>which security filters are active,</li>
+ *     <li>password encoding strategy.</li>
+ * </ul>
  *
+ * <p><b>Beginner note:</b> This class does NOT authenticate users directly.
+ * It only configures how Spring Security should behave.</p>
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfigurationApplication {
 
     private final JWTAuthenticationFilter jwtAuthenticationFilter;
 
     private final UserDetailsService userDetailsService;
 
+    /**
+     * Constructor injection of custom JWT filter.
+     *
+     * @param jwtAuthenticationFilter filter responsible for validating JWT tokens
+     */
     public SecurityConfigurationApplication(JWTAuthenticationFilter jwtAuthenticationFilter,
                                             UserDetailsService userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -47,7 +57,19 @@ public class SecurityConfigurationApplication {
 
 
     /**
-     * Sestaví hlavní security filter chain.
+     * Defines the main security filter chain.
+     *
+     * <p>This is where we configure:</p>
+     * <ul>
+     *     <li>CSRF behavior</li>
+     *     <li>which endpoints are public</li>
+     *     <li>session management strategy</li>
+     *     <li>JWT filter registration</li>
+     * </ul>
+     *
+     * @param http Spring Security HTTP configuration
+     * @return configured {@link SecurityFilterChain}
+     * @throws Exception if configuration fails
      */
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -56,41 +78,62 @@ public class SecurityConfigurationApplication {
                 // Enable CORS support. Spring will look for a CorsConfigurationSource bean (defined below).
                 .cors(Customizer.withDefaults())
 
-                // CSRF is mainly relevant for browser-based sessions with cookies.
-                // For APIs (especially with tokens) it is often disabled, but it depends on your auth approach.
+                // Disable CSRF because we use stateless JWT authentication.
+                //Note: CSRF protection is mainly needed for session-based apps.
                 .csrf(csrf -> csrf.disable())
 
-
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-
-                // Authorization rules: who can access which URL.
+                // Configure authorization rules for HTTP requests.
                 .authorizeHttpRequests(auth -> auth
 
-                        // Allow access to any endpoint under /api/**
+                        // Public endpoints (e.g., login, registration).
+                        // These do not require authentication.
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/**").authenticated()
-                        // Allow access to everything else as well (very open setup).
-                        // Later you might change this to authenticated() or define more matchers.
-                        .anyRequest().permitAll())
 
+                        // All other endpoints require authentication.
+                        .anyRequest().authenticated())
+
+                // Stateless session management (important for JWT).
+                // Beginner note: No HTTP session is created or stored on the server.
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // Add our custom JWT filter before Spring's default authentication filter.
+                // This ensures JWT is validated before accessing secured endpoints.
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 // Finalize and create the filter chain instance used by Spring Security.
                 .build();
     }
 
+    /**
+     * Defines the password encoder used for hashing user passwords.
+     *
+     * <p>BCrypt is a strong one-way hashing algorithm recommended for password storage.</p>
+     *
+     * <p><b>Beginner note:</b> We NEVER store raw passwords in the database.
+     * Only hashed values are stored.</p>
+     *
+     * @return {@link PasswordEncoder} implementation
+     */
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Exposes {@link AuthenticationManager} as a Spring bean.
+     *
+     * <p>This is typically used in login endpoints to authenticate
+     * username + password before generating a JWT.</p>
+     *
+     * @param configuration Spring authentication configuration
+     * @return configured {@link AuthenticationManager}
+     * @throws Exception if creation fails
+     */
     @Bean
-    public AuthenticationProvider authenticationProvider(){
-        DaoAuthenticationProvider
-                authenticationProvider = new DaoAuthenticationProvider(userDetailsService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
-        return authenticationProvider;
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
+        throws Exception{
+        return configuration.getAuthenticationManager();
+
     }
 
     /**

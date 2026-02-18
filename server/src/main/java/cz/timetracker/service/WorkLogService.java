@@ -44,6 +44,7 @@ public interface WorkLogService {
      * Returns single WorkLog by ID.
      *
      * @param id WorkLog ID
+     * @param workLogDTO worklog DTO
      * @return WorkLog DTO
      */
     WorkLogDTO updateWorkLog(WorkLogDTO workLogDTO, Long id);

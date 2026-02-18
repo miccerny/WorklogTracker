@@ -3,12 +3,19 @@ package cz.timetracker.service;
 import cz.timetracker.dto.TimerDTO;
 import cz.timetracker.dto.mapper.TimerMapper;
 import cz.timetracker.entity.TimerEntity;
+import cz.timetracker.entity.UserEntity;
 import cz.timetracker.entity.WorkLogEntity;
 import cz.timetracker.entity.enums.TimerType;
 import cz.timetracker.entity.repository.TimerRepository;
+import cz.timetracker.entity.repository.UserRespository;
 import cz.timetracker.entity.repository.WorkLogRepository;
 import cz.timetracker.service.exceptions.ConflictException;
+import cz.timetracker.service.exceptions.ForbiddenException;
 import cz.timetracker.service.exceptions.NotFoundException;
+import cz.timetracker.service.exceptions.TimerAlreadyRunningException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +44,7 @@ public class TimerServiceImpl implements TimerService{
     private final TimerRepository timerRepository;
     private final TimerMapper timerMapper;
     private final WorkLogRepository workLogRepository;
+    private final UserRespository userRespository;
 
     /**
      * Constructor injection of required dependencies.
@@ -49,10 +57,12 @@ public class TimerServiceImpl implements TimerService{
      */
     public TimerServiceImpl(TimerRepository timerRepository,
                             TimerMapper timerMapper,
-                            WorkLogRepository workLogRepository){
+                            WorkLogRepository workLogRepository,
+                            UserRespository userRespository){
         this.timerRepository = timerRepository;
         this.timerMapper = timerMapper;
         this.workLogRepository = workLogRepository;
+        this.userRespository = userRespository;
     }
 
     /**
@@ -75,22 +85,18 @@ public class TimerServiceImpl implements TimerService{
     @Transactional
     @Override
     public TimerDTO startTimer(Long workLogId) {
+        UserEntity user = getCurrentUser();
+        WorkLogEntity workLog = requireOwnedWorkLog(workLogId, user.getId());
         // Business validation: allow only one RUNNING timer per WorkLog.
         if(timerRepository.existsByWorkLogIdAndStatus(workLogId, TimerType.RUNNING)){
-            throw new ConflictException("Timer already running for this worklog");
+            throw new TimerAlreadyRunningException("Timer already running for this worklog");
         }
-
-        // WorkLog must exist, otherwise we cannot attach the timer to it.
-        WorkLogEntity workLogEntity = workLogRepository.findById(workLogId)
-                .orElseThrow(
-                        () -> new NotFoundException("Work log with " + workLogId + "not found")
-                );
 
         // Create new timer: start time = now, status = RUNNING, assign to WorkLog.
         TimerEntity timerEntity = new TimerEntity();
         timerEntity.setStartedAt(LocalDateTime.now());
         timerEntity.setStatus(TimerType.RUNNING);
-        timerEntity.setWorkLog(workLogEntity);
+        timerEntity.setWorkLog(workLog);
 
         // Persist timer to DB so it gets its ID and is stored permanently.
         TimerEntity saved = timerRepository.save(timerEntity);
@@ -119,16 +125,14 @@ public class TimerServiceImpl implements TimerService{
     @Transactional
     @Override
     public TimerDTO stopTimer(Long workLogId) {
+        UserEntity user = getCurrentUser();
         // Find active timer: we expect only one RUNNING timer, take the newest (startedAt DESC).
         TimerEntity runningTimer = timerRepository
-                .findFirstByWorkLogIdAndStatusOrderByStartedAtDesc(workLogId, TimerType.RUNNING)
+                .findLatestForWorkLog(workLogId, TimerType.RUNNING, user)
                 .orElseThrow(()-> new ConflictException("Timer is not running for this worklog " + workLogId));
 
         // WorkLog must exist (we want consistent relationship and validation).
-        WorkLogEntity workLogEntity = workLogRepository.findById(workLogId)
-                .orElseThrow(
-                        () -> new NotFoundException("Work log with " + workLogId + "not found")
-                );
+        WorkLogEntity workLogEntity = runningTimer.getWorkLog();
 
         // Stop time is "now" (moment when user pressed STOP).
         LocalDateTime stoppedAt = LocalDateTime.now();
@@ -148,8 +152,9 @@ public class TimerServiceImpl implements TimerService{
     @Transactional(readOnly = true)
     @Override
     public TimerDTO getActiveTimer(Long workLogId) {
-        TimerEntity runningTimer = timerRepository.findFirstByWorkLogIdAndStatusOrderByStartedAtDesc(workLogId, TimerType.RUNNING)
-                .orElseThrow(() -> new NotFoundException("No active timer for worklog " +workLogId));
+        UserEntity user = getCurrentUser();
+        TimerEntity runningTimer = timerRepository.findLatestForWorkLog(workLogId, TimerType.RUNNING, user)
+                .orElseThrow(() -> new NotFoundException("No active timer for worklog " + workLogId));
 
         return timerMapper.toDTO(runningTimer);
     }
@@ -157,7 +162,8 @@ public class TimerServiceImpl implements TimerService{
     @Transactional
     @Override
     public TimerDTO stopActiveTimer(Long id) {
-        TimerEntity runningTimer = timerRepository.findById(id)
+        UserEntity user = getCurrentUser();
+        TimerEntity runningTimer = timerRepository.findByIdAndWorkLogOwnerId(id, user.getId())
                 .orElseThrow(() -> new NotFoundException("Timer with ID " + id + " not found"));
 
         // Jediná povolená “úprava”: stop, jen když běží
@@ -189,17 +195,17 @@ public class TimerServiceImpl implements TimerService{
     @Override
     @Transactional(readOnly = true)
     public List<TimerDTO> getAllTimers(Long workLogId) {
+        UserEntity user = getCurrentUser();
         // Validation: if there are no timers for workLogId, we currently treat it as "not found".
         // (This depends on your business rules: some apps would return empty list instead.)
-        if(!timerRepository.existsByWorkLogId(workLogId)){
-            throw new NotFoundException("Worklog with ID " + workLogId + " not found");
+        if(!workLogRepository.existsByIdAndOwnerId(workLogId, user.getId())){
+            throw new ForbiddenException("No access to worklog");
         }
 
         // Load timers ordered newest -> oldest and map each entity to DTO.
         return timerRepository.findByWorkLogIdOrderByStartedAtDesc(workLogId).stream()
                     .map(timerMapper::toDTO)
                     .toList();
-
     }
 
 
@@ -273,5 +279,20 @@ public class TimerServiceImpl implements TimerService{
         // Save second part and return both saved entities.
         TimerEntity secondSaved = timerRepository.save(overFlowTimer);
         return List.of(firstSaved, secondSaved);
+    }
+
+    private UserEntity getCurrentUser(){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new AccessDeniedException("Unauthorized");
+        }
+        String username = auth.getName();
+        return userRespository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found " + username));
+    }
+
+    private WorkLogEntity requireOwnedWorkLog(Long workLogId, Long ownerId) {
+        return workLogRepository.findByIdAndOwnerId(workLogId, ownerId)
+                .orElseThrow(() -> new AccessDeniedException("No access to worklog " + workLogId));
     }
 }

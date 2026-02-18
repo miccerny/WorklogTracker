@@ -1,6 +1,5 @@
 package cz.timetracker.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

@@ -16,73 +16,95 @@ import java.util.Date;
 import java.util.UUID;
 
 /**
- * Jednoduchá servisní třída pro práci s JWT tokeny.
+ * Service responsible for creating and validating JWT tokens.
  *
- * <p>Co tady řešíme:
+ * <p>This class focuses on:</p>
  * <ul>
- *     <li>vytvoření tokenu po úspěšném přihlášení,</li>
- *     <li>získání username (subjectu) z tokenu,</li>
- *     <li>ověření, že token patří danému uživateli a neexpiroval.</li>
+ *     <li>generating JWT tokens after successful login,</li>
+ *     <li>extracting the username (subject) from a token,</li>
+ *     <li>validating token signature and expiration.</li>
  * </ul>
+ *
+ * <p><b>Beginner note:</b> JWT is a signed string containing claims (data).
+ * The server verifies the signature using the secret key. If the signature is valid
+ * and the token is not expired, we can trust its content.</p>
  */
 @Service
 public class JWTService {
 
     /**
-     * Jak dlouho bude access token platit.
+     * How long an access token is valid.
      */
-   private static final Duration ACCES_TOKEN_TTL = Duration.ofHours(1);
+   private static final Duration ACCESS_TOKEN_TTL = Duration.ofHours(1);
 
     /**
-     * Tajný klíč pro podepisování a validaci tokenů.
+     * Secret key used to sign and validate tokens.
+     *
+     * <p>Note: Keep this secret safe (do not commit it to GitHub).
+     * In production, store it in environment variables or a secrets manager.</p>
      */
    private final SecretKey signingKey;
 
-
+    /**
+     * Creates the JWT service and prepares the signing key.
+     *
+     * @param secret raw secret read from application properties
+     */
    public JWTService(@Value("${security.jwt.secret}") String secret){
        this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
    }
 
     /**
-     * Vygeneruje JWT token pro přihlášeného uživatele.
+     * Generates a signed JWT token for the given user.
      *
-     * @param user přihlášený uživatel
-     * @return podepsaný JWT string
+     * <p>Important standard claims used here:</p>
+     * <ul>
+     *     <li>{@code sub} (subject) - the username/email</li>
+     *     <li>{@code iat} (issued at) - when the token was created</li>
+     *     <li>{@code exp} (expiration) - when the token will expire</li>
+     *     <li>{@code jti} (JWT ID) - unique id of the token</li>
+     * </ul>
+     *
+     * @param user authenticated user
+     * @return signed JWT token as a string
      */
    public String generateToken(UserDetails user){
        Instant now = Instant.now();
-       Instant expiratesAt = now.plus(ACCES_TOKEN_TTL);
+       Instant expiresAt = now.plus(ACCESS_TOKEN_TTL);
 
        return Jwts.builder()
-               // subject = hlavní identifikátor uživatele (u nás email/username)
+               // subject = main identifier (email/username)
                .subject(user.getUsername())
-               // iat = čas vystavení tokenu
+               // iat = token creation time
                .issuedAt(Date.from(now))
-               // exp = čas expirace
-               .expiration(Date.from(expiratesAt))
-               // jti = unikátní ID tokenu
+               // exp = token expiration time
+               .expiration(Date.from(expiresAt))
+               // jti = unique token id (useful for debugging/revocation lists)
                .id(UUID.randomUUID().toString())
-               // podepsání tokenu klíčem + HS256
+               // Sign the token with HMAC SHA-256.
                .signWith(signingKey, SignatureAlgorithm.HS256)
                .compact();
    }
 
     /**
-     * Vytáhne username (subject) z tokenu.
+     * Extracts the username (subject) from the token.
      *
-     * @param token JWT token z Authorization headeru
-     * @return username uložený v subject claimu
+     * @param token raw JWT token (without "Bearer " prefix)
+     * @return username stored in the {@code sub} claim
      */
    public String extractUsername(String token){
        return extractAllClaims(token).getSubject();
    }
 
     /**
-     * Ověří, že token odpovídá konkrétnímu uživateli a neexpiroval.
+     * Checks whether a token belongs to the given user and is not expired.
      *
-     * @param token JWT token
-     * @param userDetails uživatel načtený z DB
-     * @return true pokud je token validní
+     * <p>Beginner note: this is a minimal validation. In more advanced setups,
+     * you may also validate issuer, audience, roles/claims, and support token revocation.</p>
+     *
+     * @param token raw JWT token
+     * @param userDetails user loaded from the database
+     * @return {@code true} if token is valid for the user
      */
    public boolean isTokenValid(String token, UserDetails userDetails){
        String username = extractUsername(token);
@@ -92,7 +114,10 @@ public class JWTService {
    }
 
     /**
-     * Zjistí, zda token expiroval.
+     * Checks whether the token is expired.
+     *
+     * @param token raw JWT token
+     * @return {@code true} if token expiration time is in the past
      */
    private boolean isTokenExpired(String token){
        return extractAllClaims(token).getExpiration()
@@ -100,7 +125,13 @@ public class JWTService {
    }
 
     /**
-     * Rozparsuje a ověří podpis tokenu, pak vrátí Claims.
+     * Parses the token, verifies its signature, and returns all claims.
+     *
+     * <p>Beginner note: If the token signature is invalid or the token is malformed,
+     * JJWT will throw an exception.</p>
+     *
+     * @param token raw JWT token
+     * @return parsed {@link Claims}
      */
    private Claims extractAllClaims(String token){
        return Jwts.parser()
