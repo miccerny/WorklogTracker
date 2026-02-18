@@ -1,3 +1,45 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connectionTimeout: 10000
+
+  jpa:
+    show-sql: true
+    open-in-view: true
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties.hibernate.jdbc.lob.non_contextual_creation: true
+
+server:
+  forward-headers-strategy: native
+  servlet:
+    session:
+      cookie:
+        same-site: none
+        secure: true
+  port: ${PORT:8080}
+  address: 0.0.0.0
+
+springdoc:
+  api-docs.path: /api-docs
+
+logging:
+  level:
+    com:
+      zaxxer:
+        hikari: DEBUG
+    org:
+      springframework:
+        jdbc: DEBUG
+
+
+
 security:
   jwt:
-    secret: SEM_DEJ_DLOUHY_SECRET_MIN_32_ZNAKU_NEBO_LEPE_BASE64
+    secret: ${JWT_SECRET}
+    expiration: 3600000
