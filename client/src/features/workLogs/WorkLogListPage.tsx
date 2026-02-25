@@ -3,7 +3,6 @@ import { apiGet } from "../../utils/api";
 import { HttpRequestError } from "../../errors/HttpRequestError";
 import WorkLogListPanel from "./WorkLogListPanel";
 import type { WorkLogType } from "./WorkLog.types";
-import { Link } from "react-router-dom";
 
 /**
  * WorkLogs page component.
