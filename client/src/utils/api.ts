@@ -29,12 +29,13 @@ type ApiErrorBody = {
  */
 export async function apiGet<T>(endpoint: string): Promise<T> {
   let response: Response;
+  const token = localStorage.getItem("token");
 
   try {
     response = await fetch(`${API_URL}${endpoint}`, {
       method: "GET",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      credentials: "omit",
+      headers: {...(token ? {Authorization: `Bearer ${token}`}: {})},
     });
   } catch (error) {
     // Network-level error: DNS, connection refused, CORS failure, etc.

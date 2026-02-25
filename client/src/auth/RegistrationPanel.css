@@ -1,0 +1,116 @@
+/* Kontejner využívá tvoji .card třídu (už ji máš), tady jen doplňky */
+.reg {
+  display: block;
+  max-width: 520px;
+  margin: 0 auto;
+
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+
+  padding: 18px;
+}
+
+/* Hlavička uvnitř cardu: nadpis vlevo, počet vpravo */
+.reg__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+
+  margin-bottom: 8px; /* jemný odstup od meta textu */
+}
+
+/* Nadpis sekce – podobně výrazný jako .section-title, ale pro <h4> */
+.reg__title {
+  margin: 0 0 14px;
+  font-size: 22px;
+  letter-spacing: 0.2px;
+}
+
+.reg__state {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+.reg__state--error {
+  color: #ff9a9a;
+}
+
+.reg__field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.reg label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.reg input {
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--surface-2);
+  color: var(--text);
+
+  outline: none;
+  transition: border-color 120ms ease, background 120ms ease, transform 120ms ease;
+}
+
+.reg input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.reg input:focus {
+  border-color: rgba(154, 209, 255, 0.45);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Chybovky pod inputem */
+.reg__error {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #ff9a9a;
+}
+
+/* Submit button – navazuje na tvůj .btn + .btn-primary */
+.reg__actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.reg__submit {
+  width: 100%;
+}
+
+.reg__submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Jemné oddělení mezi poli */
+.reg__divider {
+  height: 1px;
+  background: var(--border);
+  border: 0;
+  margin: 14px 0;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .reg {
+    padding: 14px;
+  }
+
+  .reg__title {
+    font-size: 20px;
+  }
+}

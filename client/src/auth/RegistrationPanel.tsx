@@ -1,71 +1,104 @@
-import type { SubmitEventHandler } from "react";
 import type { UserAuthType } from "./UserAuth.types";
 import type { FieldError } from "./FieldError.types";
+import "./RegistrationPanel.css";
+
+type FieldName = keyof UserAuthType;
 
 type RegistrationPage = {
-    onSubmit: SubmitEventHandler,
-    errorState: string,
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
-    onBlur: (e: React.FocusEvent<HTMLInputElement>)  => void,
-    valueState: UserAuthType,
-    loading: boolean,
-    fieldError: FieldError,
-    showError: any,
-    setField: any,
-    touch: any,
-}
-const RegistrationPanel = ({onSubmit, onChange, errorState, valueState, loading, onBlur, fieldError, showError, setField, touch}: RegistrationPage ) => {
-
-return(
+  onSubmit: React.ComponentPropsWithoutRef<"form">["onSubmit"];
+  errorState: string;
+  onChange: React.ComponentPropsWithoutRef<"input">["onChange"];
+  onBlur: React.ComponentPropsWithoutRef<"input">["onBlur"];
+  valueState: UserAuthType;
+  loading: boolean;
+  fieldError: FieldError;
+  showError: (field: FieldName) => boolean;
+};
+const RegistrationPanel = ({
+  onSubmit,
+  onChange,
+  errorState,
+  valueState,
+  loading,
+  onBlur,
+  fieldError,
+  showError,
+}: RegistrationPage) => {
+  return (
     <>
-    <form onSubmit={onSubmit} noValidate>
-        <h1>Registrace</h1>
-        {errorState && <p>{errorState}</p>}
+      <form className="reg" onSubmit={onSubmit} noValidate>
+        <h1 className="reg__title">Registrace</h1>
+        {errorState && (
+          <p className=" reg__state reg__state--error">{errorState}</p>
+        )}
 
-        <label>Celé jméno</label>
-        <input
-        name="fullName"
-        value={valueState.fullName}
-        onChange={(e) => setField("fullName", e.target.value)}
-        onBlur={() => touch("fullName")}
-        />
-        {showError("fullName") && fieldError.fullName}
+        <div className="reg__field">
+          <label>Celé jméno</label>
+          <input
+            className="reg input "
+            name="fullName"
+            value={valueState.fullName}
+            onChange={onChange}
+            onBlur={onBlur}
+            placeholder="Jan Novák"
+          />
+          {showError("fullName") && (
+            <div className="reg__error">{fieldError.fullName}</div>
+          )}
+        </div>
+        <div className="reg__field">
+          <label>Email</label>
+          <input
+            className="reg input"
+            name="username"
+            value={valueState.username}
+            onChange={onChange}
+            onBlur={onBlur}
+            placeholder="jan.novak@seznam.cz"
+          />
+          {showError("username") && (
+            <div className="reg__error">{fieldError.username}</div>
+          )}
+        </div>
+        <div className="reg__field">
+          <label>Heslo</label>
+          <input
+            className="reg input"
+            name="password"
+            value={valueState.password}
+            onChange={onChange}
+            onBlur={onBlur}
+          />
 
-        <label>Email</label>
-        <input
-        name="username"
-        value={valueState.username}
-        onChange={(e) => setField("username", e.target.value)}
-        onBlur={() => touch("username")}
-        />
-        {showError("username") && fieldError.username}
+          {showError("password") && (
+            <div className="reg__error">{fieldError.password}</div>
+          )}
+        </div>
+        <div className="reg__field">
+          <label>Potvrďte heslo</label>
+          <input
+            className="reg input"
+            name="confirmPassword"
+            value={valueState.confirmPassword}
+            onChange={onChange}
+            onBlur={onBlur}
+          />
 
-        <label>Heslo</label>
-        <input
-        name="password"
-        value={valueState.password}
-        onChange={onChange("password")}
-        onBlur={() => touch("password")}
-        />
-
-        {showError("password") && fieldError.password}
-
-        <label>Potvrďte heslo</label>
-        <input
-        name="confirmPassword"
-        value={valueState.confirmPassword}
-        onChange={(e) => setField("confirmPassword", e.target.value)}
-        onBlur={() => touch("confirmPassword")}
-        />
-
-        {showError("confirmPassword") && fieldError.confirmPassword}
-
-        <button type="submit" disabled={loading}>
-            {loading ? "Odesílám..." : "Registrovat" }
-        </button>
-    </form>
+          {showError("confirmPassword") && (
+            <div className="reg__error">{fieldError.confirmPassword}</div>
+          )}
+        </div>
+        <div className="reg_actions">
+          <button
+            className="btn btn-primary reg__submit"
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? "Odesílám..." : "Registrovat"}
+          </button>
+        </div>
+      </form>
     </>
-)
-
-}
+  );
+};
 export default RegistrationPanel;
