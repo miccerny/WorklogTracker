@@ -137,7 +137,7 @@ const TimerActiveIndex = () => {
     const now = Date.now();
     // Convert difference to seconds
     return Math.floor((now - start) / 1000);
-  }, [startedAt, tick]);
+  }, [startedAt]);
 
   /**
    * Formatted text shown in UI.
@@ -163,6 +163,7 @@ const TimerActiveIndex = () => {
 
       // Reload timers so UI gets RUNNING timer and starts ticking
       await loadTimer();
+      showFlash("success", "Časovač spuštěn", 2000);
     } catch (e: any) {
       setErrorState(e?.message ?? String(e));
     }

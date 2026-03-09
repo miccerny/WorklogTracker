@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { apiGet } from "../../utils/api";
+import { apiDelete, apiGet } from "../../utils/api";
 import TimerTable from "./TimerTable";
 import type { Timer } from "./Timer.types";
 import { Link, useParams } from "react-router-dom";
 import formatDuration from "./formatDuration";
+import { HttpRequestError } from "../../errors/HttpRequestError";
+import { useFlash } from "../../context/flash";
 
 /**
  * TimerIndex component.
@@ -26,6 +28,8 @@ const TimerIndex = () => {
    * Starts as empty array until loaded from API.
    */
   const [errorState, setErrorState] = useState<string | null>(null);
+
+  const {showFlash} = useFlash();
 
   /**
    * Read workLogId from route params (string by default).
@@ -57,10 +61,32 @@ const TimerIndex = () => {
       })
       .catch((error) => {
         // Store error message (depends on what apiGet throws/returns)
-        setErrorState(error);
+        if (error instanceof HttpRequestError) {
+          setErrorState(error.message);
+        } else {
+          setErrorState("Unknown error");
+        }
       });
     return timerData;
   }, [workLogId]);
+
+  const handleDeleteTimer = useCallback(
+    async (timerId: number) => {
+      try {
+        setErrorState(null);
+        await apiDelete(`/worklogs/timers/${timerId}`);
+        setTimerstate((prev) => prev.filter((timer) => timer.id !== timerId));
+        showFlash("success", "Stopky byly smazány", 2000)
+      } catch (error) {
+        if (error instanceof HttpRequestError) {
+          setErrorState(error.message);
+        } else {
+          setErrorState("Unknown error");
+        }
+      }
+    },
+    [showFlash],
+  );
 
   /**
    * useEffect runs when component mounts and when dependencies change.
@@ -107,6 +133,7 @@ const TimerIndex = () => {
         errorState={errorState}
         format={formatDuration}
         workLogId={workLogId}
+        onDeleteTimer={handleDeleteTimer}
       />
     </>
   );

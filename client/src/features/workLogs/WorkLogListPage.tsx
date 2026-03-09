@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { apiGet } from "../../utils/api";
+import { apiDelete, apiGet } from "../../utils/api";
 import { HttpRequestError } from "../../errors/HttpRequestError";
 import WorkLogListPanel from "./WorkLogListPanel";
 import type { WorkLogType } from "./WorkLog.types";
+import { useFlash } from "../../context/flash";
 
 /**
  * WorkLogs page component.
@@ -35,6 +36,7 @@ export const WorkLogListPage = () => {
    * Empty string means "no error".
    */
   const [errorState, setErrorState] = useState<string>("");
+  const {showFlash} = useFlash();
 
   useEffect(() => {
     /**
@@ -72,6 +74,23 @@ export const WorkLogListPage = () => {
     loadData();
   }, []);
 
+  const handleDeleteWorkLog = async (id: number) => {
+    try {
+      setErrorState("");
+      await apiDelete(`/worklogs?projectId=${id}`);
+      setWorkLogState((prev) => prev.filter((workLog) => workLog.id !== id));
+      showFlash("success", "Smazání proběhlo úspěšně", 2000);
+    } catch (error) {
+      if (error instanceof HttpRequestError) {
+        setErrorState(error.message);
+        showFlash("error", "Smazání se nezdařilo", 2000);
+      } else {
+        setErrorState("Unknown error");
+        showFlash("error", "Smazání se nezdařilo", 2000);
+      }
+    }
+  };
+
   return (
     <>
       
@@ -82,6 +101,7 @@ export const WorkLogListPage = () => {
         label="Počet záznamů: "
         loading={loading}
         errorState={errorState}
+        onDeleteWorkLog={handleDeleteWorkLog}
       />
     </>
   );

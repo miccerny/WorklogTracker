@@ -2,10 +2,10 @@ import { useState, type ComponentPropsWithoutRef } from "react";
 import { readAuthToken, type AuthTokenResponse, type UserAuthType } from "./UserAuth.types";
 import { apiGet, apiPost, setAuthToken } from "../utils/api";
 import { useFlash } from "../context/flash";
-import { useNavigate, type SessionData } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { HttpRequestError } from "../errors/HttpRequestError";
 import LoginPanel from "./LoginPanel";
-import { useSession } from "../context/session";
+import { useSession, type SessionData } from "../context/session";
 
 type LoginType = Pick<UserAuthType, "username" | "password">;
 type FieldName = keyof LoginType;

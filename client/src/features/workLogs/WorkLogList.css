@@ -130,6 +130,31 @@
   white-space: nowrap;
 }
 
+.wl__input {
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--surface-2);
+  color: var(--text);
+
+  outline: none;
+  transition: border-color 120ms ease, background 120ms ease, transform 120ms ease;
+}
+
+.wl__input:focus {
+  border-color: rgba(154, 209, 255, 0.45);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.wl__label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+
 /* Responzivita:
    - na úzkém displeji se řádek rozpadne do dvou řádků (název nahoře, akce dole vpravo) */
 @media (max-width: 480px) {

@@ -14,6 +14,7 @@ type WorkLog = {
   label: string;
   loading: boolean;
   errorState: string;
+  onDeleteWorkLog: (id: number) => void;
 };
 
 /**
@@ -33,6 +34,7 @@ const WorkLogListPanel = ({
   label,
   loading,
   errorState,
+  onDeleteWorkLog,
 }: WorkLog) => {
   return (
     <>
@@ -77,6 +79,13 @@ const WorkLogListPanel = ({
               {/* Link to edit page of specific WorkLog */}
               <div className="wl__actions">
                 <Link className="wl__action btn" to={`/worklogs/${workLog.id}/edit`}>Upravit</Link>
+                <button
+                  className="wl__action btn"
+                  type="button"
+                  onClick={() => onDeleteWorkLog(workLog.id)}
+                >
+                  Smazat
+                </button>
               </div>
             </li>
           ))}

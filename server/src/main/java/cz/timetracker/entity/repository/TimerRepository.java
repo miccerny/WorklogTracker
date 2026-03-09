@@ -5,6 +5,7 @@ import cz.timetracker.entity.UserEntity;
 import cz.timetracker.entity.enums.TimerType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,19 +33,12 @@ public interface TimerRepository extends JpaRepository<TimerEntity, Long> {
      * {@code select exists (...)} returns true/false directly
      * without loading full entity data from the database.</p>
      *
-     * @param id WorkLog ID
-     * @param timerType status of timer (e.g. RUNNING, STOPPED)
+     * @param workLogId WorkLog ID
+     * @param status status of timer (e.g. RUNNING, STOPPED)
      * @return true if such timer exists
      */
-    @Query(value = """
-                select exists (
-                    select 1
-                    from timer_entity t
-                    where t.work_log_id = :workLogId
-                      and t.status = :status
-                )
-            """, nativeQuery = true)
-    boolean existsByWorkLogIdAndStatus(Long id, TimerType timerType);
+
+    boolean existsByWorkLog_IdAndStatus(Long workLogId, TimerType status);
 
     /**
      * Checks whether a timer exists for a given WorkLog
@@ -57,7 +51,7 @@ public interface TimerRepository extends JpaRepository<TimerEntity, Long> {
      * @param user owner of the timer
      * @return true if such timer exists
      */
-    boolean existsByWorkLogIdAndOwner(Long worklogId, UserEntity user);
+    boolean existsByWorkLogIdAndWorkLogOwner(Long worklogId, UserEntity user);
 
     /**
      * Returns the most recent timer with a given status
@@ -86,12 +80,15 @@ public interface TimerRepository extends JpaRepository<TimerEntity, Long> {
     @Query("""
                 select t
                 from TimerEntity t
-                where t.work_log.id = :workLogId
+                where t.workLog.id = :workLogId
                   and t.status = :status
-                  and t.owner = :owner
+                  and t.workLog.owner = :owner
                 order by t.startedAt desc
             """)
-    Optional<TimerEntity> findLatestForWorkLog(Long id, TimerType timerType, UserEntity user);
+    Optional<TimerEntity> findLatestForWorkLog(@Param("workLogId") Long workLogId,
+                                               @Param("status") TimerType status,
+                                               @Param("owner") UserEntity owner
+    );
 
     /**
      * Finds a timer by its ID and verifies ownership

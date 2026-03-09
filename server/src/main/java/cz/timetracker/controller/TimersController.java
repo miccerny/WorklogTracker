@@ -128,4 +128,9 @@ public class TimersController{
         // Delegate the update operation to the service layer.
         return timerService.stopActiveTimer(timerId);
     }
+
+    @DeleteMapping("/timers/{timerId}")
+    public void deleteTimer(@PathVariable Long timerId) {
+        timerService.deleteTimer(timerId);
+    }
 }

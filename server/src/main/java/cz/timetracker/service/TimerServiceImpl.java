@@ -87,8 +87,13 @@ public class TimerServiceImpl implements TimerService{
     public TimerDTO startTimer(Long workLogId) {
         UserEntity user = getCurrentUser();
         WorkLogEntity workLog = requireOwnedWorkLog(workLogId, user.getId());
+
+        System.out.println("Before exists check");
+
+        boolean running = timerRepository.existsByWorkLog_IdAndStatus(workLogId, TimerType.RUNNING);
+        System.out.println("Exists check result: " + running);
         // Business validation: allow only one RUNNING timer per WorkLog.
-        if(timerRepository.existsByWorkLogIdAndStatus(workLogId, TimerType.RUNNING)){
+        if(timerRepository.existsByWorkLog_IdAndStatus(workLogId, TimerType.RUNNING)) {
             throw new TimerAlreadyRunningException("Timer already running for this worklog");
         }
 
@@ -98,11 +103,16 @@ public class TimerServiceImpl implements TimerService{
         timerEntity.setStatus(TimerType.RUNNING);
         timerEntity.setWorkLog(workLog);
 
+        System.out.println("Before save");
         // Persist timer to DB so it gets its ID and is stored permanently.
         TimerEntity saved = timerRepository.save(timerEntity);
 
+        System.out.println("Timer after save: " + saved.getId());
+        System.out.println("Before mapper");
         // Map DB entity to DTO so controller/front-end gets only needed fields.
-        return timerMapper.toDTO(saved);
+        TimerDTO dto = timerMapper.toDTO(saved);
+        System.out.println("After mapper");
+        return dto;
     }
 
     /**
@@ -208,6 +218,16 @@ public class TimerServiceImpl implements TimerService{
                     .toList();
     }
 
+    @Transactional
+    @Override
+    public void deleteTimer(Long id) {
+        UserEntity user = getCurrentUser();
+        TimerEntity timer = timerRepository.findByIdAndWorkLogOwnerId(id, user.getId())
+                .orElseThrow(() -> new ForbiddenException("Timer not found: " + id));
+
+        timerRepository.delete(timer);
+    }
+
 
     /**
      * Stops a RUNNING timer and optionally splits it into two timers if it crosses midnight.
@@ -281,6 +301,8 @@ public class TimerServiceImpl implements TimerService{
         return List.of(firstSaved, secondSaved);
     }
 
+
+
     private UserEntity getCurrentUser(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
@@ -293,6 +315,6 @@ public class TimerServiceImpl implements TimerService{
 
     private WorkLogEntity requireOwnedWorkLog(Long workLogId, Long ownerId) {
         return workLogRepository.findByIdAndOwnerId(workLogId, ownerId)
-                .orElseThrow(() -> new AccessDeniedException("No access to worklog " + workLogId));
+                .orElseThrow(() -> new IllegalArgumentException("No access to worklog " + workLogId));
     }
 }

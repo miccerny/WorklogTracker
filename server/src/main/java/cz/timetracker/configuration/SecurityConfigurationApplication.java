@@ -3,14 +3,16 @@ package cz.timetracker.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -42,7 +44,7 @@ public class SecurityConfigurationApplication {
 
     private final JWTAuthenticationFilter jwtAuthenticationFilter;
 
-    private final UserDetailsService userDetailsService;
+    private final ApplicationUserDetailsService userDetailsService;
 
     /**
      * Constructor injection of custom JWT filter.
@@ -50,7 +52,7 @@ public class SecurityConfigurationApplication {
      * @param jwtAuthenticationFilter filter responsible for validating JWT tokens
      */
     public SecurityConfigurationApplication(JWTAuthenticationFilter jwtAuthenticationFilter,
-                                            UserDetailsService userDetailsService) {
+                                            ApplicationUserDetailsService userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
     }
@@ -67,7 +69,7 @@ public class SecurityConfigurationApplication {
      *     <li>JWT filter registration</li>
      * </ul>
      *
-     * @param http Spring Security HTTP configuration
+     * @param httpSecurity Spring Security HTTP configuration
      * @return configured {@link SecurityFilterChain}
      * @throws Exception if configuration fails
      */
@@ -88,6 +90,7 @@ public class SecurityConfigurationApplication {
                         // Public endpoints (e.g., login, registration).
                         // These do not require authentication.
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // All other endpoints require authentication.
                         .anyRequest().authenticated())
@@ -97,11 +100,21 @@ public class SecurityConfigurationApplication {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
+                // Use the database-backed user lookup and BCrypt for login.
+                .authenticationProvider(authenticationProvider())
+
                 // Add our custom JWT filter before Spring's default authentication filter.
                 // This ensures JWT is validated before accessing secured endpoints.
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 // Finalize and create the filter chain instance used by Spring Security.
                 .build();
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
     }
 
     /**
@@ -169,7 +182,11 @@ public class SecurityConfigurationApplication {
 
         // Allowed headers that the frontend may send (Authorization, Content-Type, etc.).
         // "*" means any header.
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "Accept"
+        ));
 
         // If true, browser is allowed to include credentials in CORS requests.
         // Example: cookies or Authorization headers (depending on your setup).

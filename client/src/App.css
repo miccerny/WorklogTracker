@@ -92,6 +92,20 @@ a:hover {
   align-items: center;
 }
 
+.nav-user {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.nav-user strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
 /* Klikací itemy v navu (ať vypadají jako "chip") */
 .nav-item {
   display: inline-flex;           /* hezčí zarovnání textu */

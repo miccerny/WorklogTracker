@@ -17,6 +17,7 @@ type TimerTableProps = {
   errorState: string | null;
   format: (seconds: number) => string;
   workLogId: number | null;
+  onDeleteTimer: (timerId: number) => void;
 };
 
 /**
@@ -37,6 +38,7 @@ const TimerTable = ({
   timerData,
   errorState,
   workLogId,
+  onDeleteTimer,
 }: TimerTableProps) => {
   /**
    * If no timers exist, show simple empty state.
@@ -82,6 +84,9 @@ const TimerTable = ({
 
                 {/* Timer status (e.g. RUNNING, STOPPED) */}
                 <div>Status: {timer.status}</div>
+                <button type="button" onClick={() => onDeleteTimer(timer.id)}>
+                  Smazat timer
+                </button>
               </li>
             );
           })}

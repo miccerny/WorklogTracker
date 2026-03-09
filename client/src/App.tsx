@@ -1,112 +1,88 @@
-/**
- * App-level routing + global layout (header + page container).
- *
- * Responsibilities:
- * - Show main navigation (WorkLogs + Timers link depending on selected WorkLog)
- * - Define application routes using React Router v6
- * - Keep router-dependent UI (like active WorkLog context) at the top level
- */
-import { Route, Link, Routes, useMatch } from "react-router-dom";
+import { Link, Route, Routes, useMatch } from "react-router-dom";
+import LoginPage from "./auth/LoginPage";
+import RegistrationPage from "./auth/registration/ReqistrationPage";
+import { useSession } from "./context/session";
+import TimerActiveIndex from "./features/timers/ActiveTimerPage";
+import TimerIndex from "./features/timers/TimerListPage";
+import WorkLogForm from "./features/workLogs/WorkLogFormPage";
+import WorkLogLayout from "./features/workLogs/WorkLogLayout";
+import { WorkLogListPage } from "./features/workLogs/WorkLogListPage";
+import { setAuthToken } from "./utils/api";
 import "./App.css";
 
-// Pages / layouts
-import { WorkLogListPage} from "./features/workLogs/WorkLogListPage";
-import WorkLogLayout from "./features/workLogs/WorkLogLayout";
-import WorkLogForm from "./features/workLogs/WorkLogFormPage";
-
-// Timer pages
-import TimerIndex from "./features/timers/TimerListPage";
-import TimerActiveIndex from "./features/timers/ActiveTimerPage";
-import RegistrationPage from "./auth/registration/ReqistrationPage";
-import LoginPage from "./auth/LoginPage";
-
 function App() {
-
-   /**
-   * We want to show "Časovače" link only when user is inside a specific WorkLog.
-   *
-   * useMatch checks current URL against a pattern and returns params if it matches.
-   * Pattern "/worklogs/:workLogId/*" means:
-   * - workLogId is available for any nested route under /worklogs/:workLogId/...
-   */
+  const { session, setSession } = useSession();
   const match = useMatch("/worklogs/:workLogId/*");
   const workLogId = match?.params.workLogId;
+  const user = session.data;
+
+  const handleLogout = () => {
+    setAuthToken(null);
+    setSession({ data: null, status: "unauthenticated" });
+    window.location.assign("/auth/login");
+  };
 
   return (
     <>
       <header className="header">
-        {/* Main navigation area */}
         <ul>
           <li className="nav-center">
-            {/* Always available: list of WorkLogs */}
-            <Link className="nav-item" to={"/worklogs"}>
+            <Link className="nav-item" to="/worklogs">
               Worklogs
             </Link>
-
-            {/* 
-              Timers link depends on whether we currently have a WorkLog context.
-              If we don't have workLogId (we're not inside a specific WorkLog),
-              we render a disabled-looking label instead of a clickable link.
-            */}
             {workLogId ? (
               <Link className="nav-item" to={`/worklogs/${workLogId}/summary`}>
                 Časovače
               </Link>
             ) : (
-              <span
-                className="nav-item"
-                style={{ opacity: 0.5, cursor: "not-allowed" }}
-              >
+              <span className="nav-item" style={{ opacity: 0.5, cursor: "not-allowed" }}>
                 Časovače
               </span>
             )}
           </li>
         </ul>
 
-        {/* Right-side auth placeholder (not wired yet) */}
         <ul className="nav-auth">
-          <li>
-            <Link className="nav-item" to={"/auth/register"}>
-            Registrace
-            </Link>
-          </li>
-          <li>
-            <Link className="nav-item" to={"/auth/login"}>
-            Přihlásit
-            </Link>
-          </li>
+          {session.status === "authenticated" && user ? (
+            <>
+              <li className="nav-user">
+                <strong>{user.name}</strong>
+                <span>{user.username}</span>
+              </li>
+              <li>
+                <button className="nav-item" type="button" onClick={handleLogout}>
+                  Odhlásit
+                </button>
+              </li>
+            </>
+          ) : (
+            <>
+              <li>
+                <Link className="nav-item" to="/auth/register">
+                  Registrace
+                </Link>
+              </li>
+              <li>
+                <Link className="nav-item" to="/auth/login">
+                  Přihlásit
+                </Link>
+              </li>
+            </>
+          )}
         </ul>
       </header>
 
-      {/* Main content container */}
       <div className="page">
         <Routes>
           <Route path="/auth">
-            <Route path="register" element={<RegistrationPage/>}/>
-            <Route path="login" element={< LoginPage/>}/>
+            <Route path="register" element={<RegistrationPage />} />
+            <Route path="login" element={<LoginPage />} />
           </Route>
-          {/* WorkLog list */}
           <Route path="/worklogs" element={<WorkLogListPage />} />
-
-          {/* WorkLog create */}
           <Route path="/worklogs/new" element={<WorkLogForm mode="create" />} />
-
-           {/* WorkLog edit */}
-          <Route
-            path="/worklogs/:workLogId/edit"
-            element={<WorkLogForm mode="edit" />}
-          />
-
-          {/* 
-            WorkLog "detail" route acts as a layout for nested timer pages.
-            WorkLogLayout typically renders <Outlet /> for children.
-          */}
+          <Route path="/worklogs/:workLogId/edit" element={<WorkLogForm mode="edit" />} />
           <Route path="/worklogs/:workLogId" element={<WorkLogLayout />}>
-
-            {/* Timers overview for selected WorkLog */}
             <Route path="summary" element={<TimerIndex />} />
-
-            {/* Active timer page for selected WorkLog */}
             <Route path="active-timer" element={<TimerActiveIndex />} />
           </Route>
         </Routes>

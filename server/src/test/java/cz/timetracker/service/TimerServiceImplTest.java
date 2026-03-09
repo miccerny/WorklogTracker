@@ -74,7 +74,7 @@ class TimerServiceImplTest {
         expected.setStatus(TimerType.RUNNING);
         expected.setWorkLogId(1L);
 
-        when(timerRepository.existsByWorkLogIdAndStatus(1L, TimerType.RUNNING)).thenReturn(false);
+        when(timerRepository.existsByWorkLog_IdAndStatus(1L, TimerType.RUNNING)).thenReturn(false);
         when(workLogRepository.findById(1L)).thenReturn(Optional.of(workLog));
         when(timerRepository.save(any(TimerEntity.class))).thenReturn(saved);
         when(timerMapper.toDTO(saved)).thenReturn(expected);
@@ -94,7 +94,7 @@ class TimerServiceImplTest {
 
     @Test
     void startTimer_throwsConflictWhenTimerAlreadyRunning() {
-        when(timerRepository.existsByWorkLogIdAndStatus(1L, TimerType.RUNNING)).thenReturn(true);
+        when(timerRepository.existsByWorkLog_IdAndStatus(1L, TimerType.RUNNING)).thenReturn(true);
 
         assertThrows(ConflictException.class, () -> timerService.startTimer(1L));
 
@@ -114,7 +114,7 @@ class TimerServiceImplTest {
         TimerDTO secondDto = new TimerDTO();
         secondDto.setId(2L);
 
-        when(timerRepository.existsByWorkLogIdAndOwner(1L, userEntity)).thenReturn(true);
+        when(timerRepository.existsByWorkLogIdAndWorkLogOwner(1L, userEntity)).thenReturn(true);
         when(timerRepository.findByWorkLogIdOrderByStartedAtDesc(1L)).thenReturn(List.of(first, second));
         when(timerMapper.toDTO(first)).thenReturn(firstDto);
         when(timerMapper.toDTO(second)).thenReturn(secondDto);
@@ -126,7 +126,7 @@ class TimerServiceImplTest {
 
     @Test
     void getAllTimers_throwsNotFoundWhenWorkLogHasNoTimers() {
-        when(timerRepository.existsByWorkLogIdAndOwner(1L, userEntity)).thenReturn(false);
+        when(timerRepository.existsByWorkLogIdAndWorkLogOwner(1L, userEntity)).thenReturn(false);
 
         assertThrows(NotFoundException.class, () -> timerService.getAllTimers(1L));
 

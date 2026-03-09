@@ -1,9 +1,9 @@
 package cz.timetracker.configuration;
 
 import cz.timetracker.entity.repository.UserRespository;
-import cz.timetracker.service.exceptions.NotFoundException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,31 +18,30 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ApplicationUserDetailsService implements UserDetailsService {
-    private final UserRespository userRespository;
+    private final UserRespository userRepository;
 
     /**
      * Creates the service with required dependencies.
      *
-     * @param userRespository repository used to load users from the database
+     * @param userRepository repository used to load users from the database
      */
-    public ApplicationUserDetailsService(UserRespository userRespository){
-        this.userRespository = userRespository;
+    public ApplicationUserDetailsService(UserRespository userRepository){
+        this.userRepository = userRepository;
     }
 
     /**
      * Loads a user from the database by username (email).
      *
-     * <p>If the user does not exist, we throw {@link NotFoundException}. Spring Security
+     * <p>If the user does not exist, we throw {@link UsernameNotFoundException}. Spring Security
      * will treat this as "user not found" during authentication.</p>
      *
      * @param username username/email coming from Spring Security
      * @return loaded {@link UserDetails} instance
-     * @throws NotFoundException when the user cannot be found
+     * @throws UsernameNotFoundException when the user cannot be found
      */
     @Override
     public UserDetails loadUserByUsername(String username){
-        return userRespository.findByUsername(username).
-                orElseThrow(() -> new NotFoundException("Uživatel nebyl nalezen"));
-
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 }

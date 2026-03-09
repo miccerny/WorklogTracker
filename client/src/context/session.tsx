@@ -6,7 +6,6 @@ import {
   type ReactNode,
 } from "react";
 import { apiGet } from "../utils/api";
-import { data } from "react-router-dom";
 import { HttpRequestError } from "../errors/HttpRequestError";
 
 /**
@@ -22,11 +21,10 @@ export type SessionStatus =
  * Replace `any` with your real User DTO when you have it.
  */
 export interface SessionData {
-  // Example:
-  // id: number;
-  // email: string;
-  // role: string;
-  [key: string]: unknown;
+  id: number;
+  username: string;
+  name: string;
+  createdAt?: string;
 }
 
 /**

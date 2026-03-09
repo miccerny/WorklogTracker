@@ -55,4 +55,6 @@ public interface TimerService {
      * @return list of TimerResponseDto
      */
     List<TimerDTO> getAllTimers(Long workLogId);
+
+    void deleteTimer(Long id);
 }
