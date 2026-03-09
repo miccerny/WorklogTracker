@@ -1,5 +1,5 @@
-import type { UserAuthType } from "./UserAuth.types";
-import type { FieldError } from "./FieldError.types";
+import type { UserAuthType } from "../UserAuth.types";
+import type { FieldError } from "../FieldError.types";
 import "./RegistrationPanel.css";
 
 type FieldName = keyof UserAuthType;
@@ -36,14 +36,14 @@ const RegistrationPanel = ({
           <label>Celé jméno</label>
           <input
             className="reg input "
-            name="fullName"
-            value={valueState.fullName}
+            name="name"
+            value={valueState.name}
             onChange={onChange}
             onBlur={onBlur}
             placeholder="Jan Novák"
           />
-          {showError("fullName") && (
-            <div className="reg__error">{fieldError.fullName}</div>
+          {showError("name") && (
+            <div className="reg__error">{fieldError.name}</div>
           )}
         </div>
         <div className="reg__field">

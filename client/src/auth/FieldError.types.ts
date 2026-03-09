@@ -1,6 +1,6 @@
 export type FieldError = {
-    fullName?: string;
+  name?: string;
   username?: string;
   password?: string;
   confirmPassword?: string;
-}
+};

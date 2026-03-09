@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { apiGet } from "../utils/api";
+import { data } from "react-router-dom";
 import { HttpRequestError } from "../errors/HttpRequestError";
 
 /**
@@ -78,29 +79,23 @@ export function SessionProvider({ children }: { children: ReactNode }) {
    * Load current user session on mount.
    */
   useEffect(() => {
-    apiGet<SessionData>("/me")
-      .then((data) =>
-        setSessionState({ data, status: "authenticated" })
-      )
-      .catch((e: unknown) => {
-        if (
-          e instanceof HttpRequestError &&
-          e.status === 401
-        ) {
-          setSessionState({
-            data: null,
-            status: "unauthenticated",
-          });
-          return;
-        }
-
-        console.error("Session load failed:", e);
-
-        setSessionState({
-          data: null,
-          status: "unauthenticated",
-        });
+    apiGet<SessionData>("/auth/me")
+    .then((data) => setSessionState({ data, status: "authenticated"})
+  )
+  .catch((e: unknown) => {
+    if(e instanceof HttpRequestError && e.status === 401){
+      setSessionState({
+        data: null,
+        status: "unauthenticated",
       });
+      return;
+    }
+    console.error("Session load failed:", e);
+    setSessionState({
+      data: null,
+      status: "unauthenticated",
+    })
+  });
   }, []);
 
   return (

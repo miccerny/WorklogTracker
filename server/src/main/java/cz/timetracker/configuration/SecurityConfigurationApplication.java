@@ -87,7 +87,7 @@ public class SecurityConfigurationApplication {
 
                         // Public endpoints (e.g., login, registration).
                         // These do not require authentication.
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
 
                         // All other endpoints require authentication.
                         .anyRequest().authenticated())

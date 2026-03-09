@@ -17,7 +17,8 @@ import WorkLogForm from "./features/workLogs/WorkLogFormPage";
 // Timer pages
 import TimerIndex from "./features/timers/TimerListPage";
 import TimerActiveIndex from "./features/timers/ActiveTimerPage";
-import RegistrationPage from "./auth/ReqistrationPage";
+import RegistrationPage from "./auth/registration/ReqistrationPage";
+import LoginPage from "./auth/LoginPage";
 
 function App() {
 
@@ -65,12 +66,14 @@ function App() {
         {/* Right-side auth placeholder (not wired yet) */}
         <ul className="nav-auth">
           <li>
-            <Link className="nav-item" to={"/auth/registration"}>
+            <Link className="nav-item" to={"/auth/register"}>
             Registrace
             </Link>
           </li>
           <li>
-            <span className="nav-item">Přihlášení</span>
+            <Link className="nav-item" to={"/auth/login"}>
+            Přihlásit
+            </Link>
           </li>
         </ul>
       </header>
@@ -79,7 +82,8 @@ function App() {
       <div className="page">
         <Routes>
           <Route path="/auth">
-            <Route path="registration" element={<RegistrationPage/>}/>
+            <Route path="register" element={<RegistrationPage/>}/>
+            <Route path="login" element={< LoginPage/>}/>
           </Route>
           {/* WorkLog list */}
           <Route path="/worklogs" element={<WorkLogListPage />} />

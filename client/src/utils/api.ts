@@ -5,6 +5,27 @@ import { HttpRequestError } from "../errors/HttpRequestError";
  * Tip: in real deployments this is usually read from env variables (Vite: import.meta.env).
  */
 const API_URL = "http://localhost:8080/api";
+const TOKEN_STORAGE_KEY = "token";
+
+export function setAuthToken(token: string | null): void {
+  if (!token) {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    return;
+  }
+  localStorage.setItem(TOKEN_STORAGE_KEY, token);
+}
+
+function getAuthToken(): string | null {
+  return localStorage.getItem(TOKEN_STORAGE_KEY);
+}
+
+function authHeaders(base: HeadersInit = {}): HeadersInit {
+  const token = getAuthToken();
+  if(!token) return base;
+  return {
+    ...base,
+    Authorization: `Bearer ${token}`};
+  }
 
 /**
  * Expected shape of an API error response body.
@@ -29,13 +50,12 @@ type ApiErrorBody = {
  */
 export async function apiGet<T>(endpoint: string): Promise<T> {
   let response: Response;
-  const token = localStorage.getItem("token");
-
+  
   try {
     response = await fetch(`${API_URL}${endpoint}`, {
       method: "GET",
-      credentials: "omit",
-      headers: {...(token ? {Authorization: `Bearer ${token}`}: {})},
+      credentials: "include",
+      headers: authHeaders({"Content-Type": "application/json" }),
     });
   } catch (error) {
     // Network-level error: DNS, connection refused, CORS failure, etc.
@@ -95,7 +115,7 @@ export async function apiPost<T, B>(endpoint: string, body: B): Promise<T> {
   try {
     response = await fetch(`${API_URL}${endpoint}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders({ "Content-Type": "application/json" }),
       credentials: "include",
       body: JSON.stringify(body),
     });
@@ -150,7 +170,7 @@ export async function apiPut<T, B>(endpoint: string, body: B): Promise<T> {
   try {
     response = await fetch(`${API_URL}${endpoint}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders({ "Content-Type": "application/json" }),
       credentials: "include",
       body: JSON.stringify(body),
     });
@@ -200,6 +220,7 @@ export async function apiDelete(endpoint: string): Promise<void> {
     response = await fetch(`${API_URL}${endpoint}`, {
       method: "DELETE",
       credentials: "include",
+      headers: authHeaders(),
     });
   } catch (error) {
     if (error instanceof Error) {

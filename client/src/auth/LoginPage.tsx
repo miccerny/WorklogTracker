@@ -1,12 +1,13 @@
-import { useState } from "react";
-import type { UserAuthType } from "./UserAuth.types";
-import { apiPost } from "../utils/api";
+import { useState, type ComponentPropsWithoutRef } from "react";
+import { readAuthToken, type AuthTokenResponse, type UserAuthType } from "./UserAuth.types";
+import { apiGet, apiPost, setAuthToken } from "../utils/api";
 import { useFlash } from "../context/flash";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, type SessionData } from "react-router-dom";
 import { HttpRequestError } from "../errors/HttpRequestError";
 import LoginPanel from "./LoginPanel";
+import { useSession } from "../context/session";
 
-type LoginType = Pick<UserAuthType, "fullName" & "confirmPasswrod">;
+type LoginType = Pick<UserAuthType, "username" | "password">;
 type FieldName = keyof LoginType;
 
 const LoginPage = () => {
@@ -19,8 +20,9 @@ const LoginPage = () => {
   const [error, setError] = useState<string>("");
   const { showFlash } = useFlash();
   const navigate = useNavigate();
+  const {setSession} = useSession();
 
-  const handleChange: React.ComponentPropsWithoutRef<"input">["onChange"] = (
+  const handleChange: ComponentPropsWithoutRef<"input">["onChange"] = (
     e,
   ) => {
     const field = e.target.name as FieldName;
@@ -32,7 +34,7 @@ const LoginPage = () => {
     }));
   };
 
-  const load: React.ComponentPropsWithoutRef<"form">["onSubmit"] = async (
+  const load: ComponentPropsWithoutRef<"form">["onSubmit"] = async (
     e,
   ) => {
     e.preventDefault();
@@ -40,9 +42,18 @@ const LoginPage = () => {
     setLoading(true);
     setError("");
     try {
-      await apiPost("/login", value);
+      const response = await apiPost<AuthTokenResponse, LoginType>("/auth/login", value);
+      const token = readAuthToken(response);
+      if(!token){
+        throw new HttpRequestError("Přihlášení nevrátilo token")
+      }
+
+      setAuthToken(token);
+      const me = await apiGet<SessionData>("/auth/me");
+      setSession({data: me, status: "authenticated"});
+      
       showFlash("success", "Přihlášení bylo úspěšné");
-      navigate("/worklog");
+      navigate("/worklogs");
     } catch (e) {
       if (e instanceof HttpRequestError) {
         setError(e.message || "Přihlášení se nezdařilo");

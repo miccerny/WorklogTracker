@@ -1,16 +1,20 @@
 import React, { useState } from "react";
-import type { UserAuthType } from "./UserAuth.types";
-import { apiPost } from "../utils/api";
-import { useFlash } from "../context/flash";
-import { HttpRequestError } from "../errors/HttpRequestError";
+import {
+  readAuthToken,
+  type AuthTokenResponse,
+  type UserAuthType,
+} from "../UserAuth.types";
+import { apiPost, setAuthToken } from "../../utils/api";
+import { useFlash } from "../../context/flash";
+import { HttpRequestError } from "../../errors/HttpRequestError";
 import { useNavigate } from "react-router-dom";
 import RegistrationPanel from "./RegistrationPanel";
-import type { FieldError } from "./FieldError.types";
+import type { FieldError } from "../FieldError.types";
 
 type FieldName = keyof UserAuthType;
 
 type Touched = {
-  fullName?: boolean;
+  name?: boolean;
   username?: boolean;
   password?: boolean;
   confirmPassword?: boolean;
@@ -24,7 +28,7 @@ export const RegistrationPage = () => {
   const navigate = useNavigate();
 
   const [valueState, setValueState] = useState<UserAuthType>({
-    fullName: "",
+    name: "",
     username: "",
     password: "",
     confirmPassword: "",
@@ -37,7 +41,7 @@ export const RegistrationPage = () => {
   const validate = (v: UserAuthType): FieldError => {
     const nextField: FieldError = {};
 
-    if (!v.fullName.trim()) nextField.fullName = "Zadej celé jméno";
+    if (!v.name.trim()) nextField.name = "Zadej celé jméno";
     if (!v.username.trim()) nextField.username = "Zadej email";
     else if (!emailRegex.test(v.username.trim()))
       nextField.username = "Email nemá správný tvar";
@@ -63,7 +67,9 @@ export const RegistrationPage = () => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
-  const handleChange: React.ComponentPropsWithoutRef<"input">["onChange"] = (e) => {
+  const handleChange: React.ComponentPropsWithoutRef<"input">["onChange"] = (
+    e,
+  ) => {
     const field = e.target.name as FieldName;
     const value = e.target.value;
 
@@ -85,49 +91,57 @@ export const RegistrationPage = () => {
     validateAndSet(valueState);
   };
 
-  const handleSubmit: React.ComponentPropsWithoutRef<"form">["onSubmit"] = async (e) => {
-    e.preventDefault();
-    setErrorState("");
-    setTouched({
-      fullName: true,
-      username: true,
-      password: true,
-      confirmPassword: true,
-    });
+  const handleSubmit: React.ComponentPropsWithoutRef<"form">["onSubmit"] =
+    async (e) => {
+      e.preventDefault();
+      setErrorState("");
+      setTouched({
+        name: true,
+        username: true,
+        password: true,
+        confirmPassword: true,
+      });
 
-    const nextErrors = validateAndSet(valueState);
-    if (Object.keys(nextErrors).length > 0) return;
+      const nextErrors = validateAndSet(valueState);
+      if (Object.keys(nextErrors).length > 0) return;
 
-    const { confirmPassword, ...registrationData } = valueState;
+      const { confirmPassword, ...registrationData } = valueState;
 
-    try {
-      setLoading(true);
-      await apiPost("/registration", registrationData);
-      showFlash("success", "Registrace proběhla úspěšně");
-      navigate("/login");
-    } catch (e) {
-      if (e instanceof HttpRequestError) {
-        setErrorState(e.message || "Registrace se nepovedla");
-        showFlash("error", e.message || "Registrace se nepovedla");
-
-        const d = e.details as any;
-        const fieldMap = d?.errors || d?.fieldErrors;
-        if (fieldMap && typeof fieldMap === "object") {
-          setFieldsError(fieldMap);
-
-
-          setTouched((prev) => ({ ...prev, ...Object.keys(fieldMap) }));
+      try {
+        setLoading(true);
+        const response = await apiPost<
+          AuthTokenResponse,
+          typeof registrationData
+        >("/auth/register", registrationData);
+        const token = readAuthToken(response);
+        if (token) {
+          setAuthToken(token);
         }
-      } else {
-        setErrorState("Registrace se nepovedla");
-        showFlash("error", "Registrace se nepovedla");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+        showFlash("success", "Registrace proběhla úspěšně");
+        navigate(token ? "/worklogs" : "/login");
+      } catch (e) {
+        if (e instanceof HttpRequestError) {
+          setErrorState(e.message || "Registrace se nepovedla");
+          showFlash("error", e.message || "Registrace se nepovedla");
 
-  const showError = (field: FieldName) => Boolean(touched[field] && fieldError[field]);
+          const d = e.details as any;
+          const fieldMap = d?.errors || d?.fieldErrors;
+          if (fieldMap && typeof fieldMap === "object") {
+            setFieldsError(fieldMap);
+
+            setTouched((prev) => ({ ...prev, ...Object.keys(fieldMap) }));
+          }
+        } else {
+          setErrorState("Registrace se nepovedla");
+          showFlash("error", "Registrace se nepovedla");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  const showError = (field: FieldName) =>
+    Boolean(touched[field] && fieldError[field]);
 
   return (
     <>

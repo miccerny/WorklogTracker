@@ -10,4 +10,6 @@ public interface AuthService {
     UserResponse createUser(UserRegistryRequest user);
 
     LoginResponse loadUser(LoginRequest loginRequest);
+
+    UserResponse getCurrentUser();
 }

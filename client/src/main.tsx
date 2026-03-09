@@ -16,6 +16,7 @@ import "./index.css";
 import App from "./App.tsx";
 import { BrowserRouter } from "react-router-dom";
 import { FlashProvider } from "./context/flash.tsx";
+import { SessionProvider } from "./context/session.tsx";
 
 // Get the root DOM element from index.html
 // The non-null assertion (!) tells TypeScript that we are sure
@@ -41,7 +42,9 @@ root.render(
         the HTML5 history API. All routes inside App
         can now use react-router features.
       */}
-        <App />
+        <SessionProvider>
+          <App />
+        </SessionProvider>
       </FlashProvider>
     </BrowserRouter>
   </StrictMode>,

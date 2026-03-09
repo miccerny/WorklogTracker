@@ -5,10 +5,7 @@ import cz.timetracker.dto.user.LoginResponse;
 import cz.timetracker.dto.user.UserRegistryRequest;
 import cz.timetracker.dto.user.UserResponse;
 import cz.timetracker.service.AuthService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * REST controller responsible for authentication endpoints.
@@ -67,5 +64,10 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest request){
         return authService.loadUser(request);
+    }
+
+    @GetMapping("/me")
+    public UserResponse currentUser(){
+        return authService.getCurrentUser();
     }
 }
